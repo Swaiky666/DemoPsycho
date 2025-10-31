@@ -1,0 +1,47 @@
+# --- Unity ---
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Mm]emoryCaptures/
+UserSettings/
+# Cache/Artifacts
+Artifacts*/ 
+# Lightmap/ GI Cache (如果放在项目里)
+*/LightmapSnapshot/*
+# Addressables（本地生成的 ServerData）
+*/ServerData/*
+
+# --- IDE / 工程文件 ---
+# Visual Studio / Rider / VSCode
+.vs/
+.idea/
+*.DotSettings.user
+.vscode/
+*.csproj
+*.sln
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# --- 平台产物 ---
+*.apk
+*.aab
+*.ipa
+*.xcworkspace
+*.xcuserstate
+.gradle/
+**/gradle-wrapper.jar
+
+# --- 其它 ---
+*.unitypackage
+.DS_Store
