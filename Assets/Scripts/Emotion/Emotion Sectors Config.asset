@@ -1,0 +1,66 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 545bdab2bfbb44fc6bb51066b47e39e6, type: 3}
+  m_Name: Emotion Sectors Config
+  m_EditorClassIdentifier: 
+  sectors:
+  - id: Pleasant
+    centerDeg: 0
+    halfWidth: 22.5
+    uiColor: {r: 0.88235295, g: 0.84313726, b: 0, a: 0}
+    enterHysteresis: 5
+    exitHysteresis: 2
+  - id: Excited
+    centerDeg: 45
+    halfWidth: 22.5
+    uiColor: {r: 0, g: 0.88235295, b: 0.49803922, a: 0}
+    enterHysteresis: 5
+    exitHysteresis: 2
+  - id: Tense
+    centerDeg: 90
+    halfWidth: 22.5
+    uiColor: {r: 0.88235295, g: 0.41960785, b: 0.41960785, a: 0}
+    enterHysteresis: 5
+    exitHysteresis: 2
+  - id: Anxious
+    centerDeg: 135
+    halfWidth: 22.5
+    uiColor: {r: 0.88235295, g: 0.078431375, b: 0.5764706, a: 0}
+    enterHysteresis: 5
+    exitHysteresis: 2
+  - id: Unpleasant
+    centerDeg: 180
+    halfWidth: 22.5
+    uiColor: {r: 0.25490198, g: 0.4117647, b: 0.88235295, a: 0}
+    enterHysteresis: 5
+    exitHysteresis: 2
+  - id: Depressed
+    centerDeg: 225
+    halfWidth: 22.5
+    uiColor: {r: 0, g: 0, b: 0.54509807, a: 0}
+    enterHysteresis: 5
+    exitHysteresis: 2
+  - id: Calm
+    centerDeg: 270
+    halfWidth: 22.5
+    uiColor: {r: 0, g: 0.88235295, b: 0.88235295, a: 0}
+    enterHysteresis: 5
+    exitHysteresis: 2
+  - id: Relaxed
+    centerDeg: 315
+    halfWidth: 22.5
+    uiColor: {r: 0.19607843, g: 0.8039216, b: 0.19607843, a: 0}
+    enterHysteresis: 5
+    exitHysteresis: 2
+  mildMax: 1.5
+  moderateMax: 4
+  wrap360: 1
