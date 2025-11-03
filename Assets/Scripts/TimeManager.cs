@@ -138,6 +138,11 @@ public partial class TimeManager : MonoBehaviour
     public float GetRemainTime() => currentDayTotalTime - currentDayTimeUsed;
 
     /// <summary>
+    /// 获取当天剩余小时数（与 GetRemainTime 相同，用于兼容性）
+    /// </summary>
+    public float GetCurrentHours() => GetRemainTime();
+
+    /// <summary>
     /// 获取当天已用时间
     /// </summary>
     public float GetUsedTime() => currentDayTimeUsed;
