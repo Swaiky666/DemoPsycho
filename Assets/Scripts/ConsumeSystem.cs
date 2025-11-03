@@ -9,14 +9,14 @@ using System.Collections.Generic;
 public class ConsumableItem
 {
     public string itemId = "food_001";
-    public string itemName = "便利店便当";
+    public string itemNameKey = "item_food_convenience";        // 本地化 key 而不是直接文本
     public float cost = 15f;                  // 花费金币
     public float timeRequired = 0.5f;         // 消耗时间
     public float healthGain = 10f;            // 恢复健康
     public float vChange = 1f;                // 情绪变化 V
     public float aChange = -0.5f;             // 情绪变化 A
     public string category = "food";          // 分类：food/rest/entertainment/tool
-    public string description = "简单填饱肚子";
+    public string descriptionKey = "desc_food_convenience";  // 本地化 key
 }
 
 /// <summary>
@@ -59,148 +59,172 @@ public class ConsumeSystem : MonoBehaviour
         consumables.Add(new ConsumableItem
         {
             itemId = "food_convenience",
-            itemName = "便利店便当",
+            itemNameKey = "item_food_convenience",
             cost = 15f,
             timeRequired = 0.5f,
             healthGain = 10f,
             vChange = 1f,
             aChange = -0.5f,
             category = "food",
-            description = "简单填饱肚子"
+            descriptionKey = "desc_food_convenience"
         });
 
         consumables.Add(new ConsumableItem
         {
             itemId = "food_restaurant",
-            itemName = "餐厅大餐",
+            itemNameKey = "item_food_restaurant",
             cost = 50f,
             timeRequired = 1.5f,
             healthGain = 30f,
             vChange = 2f,
             aChange = 0f,
             category = "food",
-            description = "高质量的餐厅用餐体验"
+            descriptionKey = "desc_food_restaurant"
         });
 
         consumables.Add(new ConsumableItem
         {
             itemId = "food_instant",
-            itemName = "速冻面",
+            itemNameKey = "item_food_instant",
             cost = 5f,
             timeRequired = 0.25f,
             healthGain = 3f,
             vChange = -0.5f,
             aChange = 0f,
             category = "food",
-            description = "快速充饥，但营养不足"
+            descriptionKey = "desc_food_instant"
         });
 
         // ===== 休息分类 =====
         consumables.Add(new ConsumableItem
         {
             itemId = "rest_sleep",
-            itemName = "充足睡眠",
+            itemNameKey = "item_rest_sleep",
             cost = 0f,
-            timeRequired = 8f,           // 睡眠消耗大量时间
+            timeRequired = 8f,
             healthGain = 50f,
             vChange = 1f,
-            aChange = -2f,               // 显著降低唤醒度
+            aChange = -2f,
             category = "rest",
-            description = "恢复精神"
+            descriptionKey = "desc_rest_sleep"
         });
 
         consumables.Add(new ConsumableItem
         {
             itemId = "rest_nap",
-            itemName = "小憩",
+            itemNameKey = "item_rest_nap",
             cost = 0f,
             timeRequired = 1f,
             healthGain = 10f,
             vChange = 0.5f,
             aChange = -1f,
             category = "rest",
-            description = "快速恢复"
+            descriptionKey = "desc_rest_nap"
         });
 
         consumables.Add(new ConsumableItem
         {
             itemId = "rest_meditation",
-            itemName = "冥想",
+            itemNameKey = "item_rest_meditation",
             cost = 0f,
             timeRequired = 0.5f,
             healthGain = 5f,
             vChange = 0.5f,
             aChange = -1.5f,
             category = "rest",
-            description = "平静心绪"
+            descriptionKey = "desc_rest_meditation"
         });
 
         // ===== 娱乐分类 =====
         consumables.Add(new ConsumableItem
         {
             itemId = "ent_movie",
-            itemName = "看电影",
+            itemNameKey = "item_ent_movie",
             cost = 30f,
             timeRequired = 2.5f,
-            healthGain = -5f,            // 娱乐不直接增加健康，甚至可能减少（久坐）
+            healthGain = -5f,
             vChange = 2f,
             aChange = 0.5f,
             category = "entertainment",
-            description = "娱乐身心"
+            descriptionKey = "desc_ent_movie"
         });
 
         consumables.Add(new ConsumableItem
         {
             itemId = "ent_coffee",
-            itemName = "咖啡馆闲逛",
+            itemNameKey = "item_ent_coffee",
             cost = 20f,
             timeRequired = 1.5f,
             healthGain = 0f,
             vChange = 1.5f,
             aChange = -0.5f,
             category = "entertainment",
-            description = "舒适的环境"
+            descriptionKey = "desc_ent_coffee"
         });
 
         consumables.Add(new ConsumableItem
         {
             itemId = "ent_game",
-            itemName = "玩游戏",
+            itemNameKey = "item_ent_game",
             cost = 0f,
             timeRequired = 2f,
             healthGain = -3f,
             vChange = 1.5f,
             aChange = 1f,
             category = "entertainment",
-            description = "沉浸式娱乐"
+            descriptionKey = "desc_ent_game"
         });
 
-        // ===== 工具分类（购买一次，长期提升效率） =====
+        // ===== 工具分类 =====
         consumables.Add(new ConsumableItem
         {
             itemId = "tool_bicycle",
-            itemName = "购买自行车",
+            itemNameKey = "item_tool_bicycle",
             cost = 200f,
-            timeRequired = 0.5f,         // 购买时间
+            timeRequired = 0.5f,
             healthGain = 0f,
             vChange = 1f,
             aChange = 0f,
             category = "tool",
-            description = "提升送快递效率 -20% 时间"
+            descriptionKey = "desc_tool_bicycle"
         });
 
         consumables.Add(new ConsumableItem
         {
             itemId = "tool_vitamins",
-            itemName = "购买维生素",
+            itemNameKey = "item_tool_vitamins",
             cost = 80f,
             timeRequired = 0.25f,
             healthGain = 20f,
             vChange = 0.5f,
             aChange = 0f,
             category = "tool",
-            description = "提升身体状态"
+            descriptionKey = "desc_tool_vitamins"
         });
+    }
+
+    /// <summary>
+    /// 获取物品本地化名称
+    /// </summary>
+    private string GetItemName(ConsumableItem item)
+    {
+        if (LocalizationManager.Instance != null)
+        {
+            return LocalizationManager.Instance.GetString(item.itemNameKey);
+        }
+        return item.itemNameKey;
+    }
+
+    /// <summary>
+    /// 获取物品本地化描述
+    /// </summary>
+    private string GetItemDescription(ConsumableItem item)
+    {
+        if (LocalizationManager.Instance != null)
+        {
+            return LocalizationManager.Instance.GetString(item.descriptionKey);
+        }
+        return item.descriptionKey;
     }
 
     /// <summary>
@@ -211,14 +235,16 @@ public class ConsumeSystem : MonoBehaviour
         var item = consumables.Find(i => i.itemId == itemId);
         if (item == null)
         {
-            Debug.LogError($"[ConsumeSystem] 物品不存在: {itemId}");
+            Debug.LogError($"物品不存在: {itemId}");
             return;
         }
+
+        string itemName = GetItemName(item);
 
         // 1) 检查金币
         if (gameState != null && gameState.res.gold < item.cost)
         {
-            Debug.LogWarning($"[ConsumeSystem] ✗ {item.itemName} - 金币不足！需要 {item.cost}，你有 {gameState.res.gold}");
+            Debug.LogWarning($"{itemName} - 金币不足！需要 {item.cost}，你有 {gameState.res.gold}");
             if (gameState != null)
             {
                 gameState.ApplyEffect(new List<string> { "V-1" });  // 失望情绪
@@ -227,12 +253,12 @@ public class ConsumeSystem : MonoBehaviour
         }
 
         // 2) 请求消耗时间
-        var timeRequest = new TimeConsumeRequest(item.timeRequired, $"消费: {item.itemName}");
+        var timeRequest = new TimeConsumeRequest(item.timeRequired, $"消费: {itemName}");
         var timeResult = timeManager.RequestTimeConsume(timeRequest);
 
         if (!timeResult.success)
         {
-            Debug.LogWarning($"[ConsumeSystem] ✗ {timeResult}");
+            Debug.LogWarning($"{timeResult}");
             return;  // 时间不足，消费失败
         }
 
@@ -261,16 +287,16 @@ public class ConsumeSystem : MonoBehaviour
         }
 
         // 打印成功日志
-        Debug.Log($"[ConsumeSystem] ✓ {item.itemName} 成功使用！");
-        Debug.Log($"  • 花费金币: {item.cost}");
-        Debug.Log($"  • 消耗时间: {item.timeRequired} 小时");
-        Debug.Log($"  • 健康变化: {item.healthGain:+0.0;-0.0;0}");
-        Debug.Log($"  • 情绪变化: V{item.vChange:+0.0;-0.0;0}, A{item.aChange:+0.0;-0.0;0}");
+        Debug.Log($"{itemName} 成功使用");
+        Debug.Log($"花费金币: {item.cost}");
+        Debug.Log($"消耗时间: {item.timeRequired} 小时");
+        Debug.Log($"健康变化: {item.healthGain:+0.0;-0.0;0}");
+        Debug.Log($"情绪变化: V{item.vChange:+0.0;-0.0;0}, A{item.aChange:+0.0;-0.0;0}");
         if (gameState != null)
         {
-            Debug.Log($"  • 剩余金币: {gameState.res.gold:F0}");
+            Debug.Log($"剩余金币: {gameState.res.gold:F0}");
         }
-        Debug.Log($"  • 剩余时间: {timeResult.remainingHours:F1} 小时\n");
+        Debug.Log($"剩余时间: {timeResult.remainingHours:F1} 小时");
     }
 
     /// <summary>
@@ -311,12 +337,15 @@ public class ConsumeSystem : MonoBehaviour
         var item = consumables.Find(i => i.itemId == itemId);
         if (item == null) return "物品不存在";
 
-        return $"{item.itemName}\n" +
-               $"  分类: {item.category}\n" +
-               $"  费用: {item.cost} 金币\n" +
-               $"  时间: {item.timeRequired} 小时\n" +
-               $"  健康: {item.healthGain:+0.0;-0.0;0}\n" +
-               $"  情绪: V{item.vChange:+0.0;-0.0;0}, A{item.aChange:+0.0;-0.0;0}\n" +
-               $"  说明: {item.description}";
+        string itemName = GetItemName(item);
+        string description = GetItemDescription(item);
+
+        return $"{itemName}\n" +
+               $"分类: {item.category}\n" +
+               $"费用: {item.cost} 金币\n" +
+               $"时间: {item.timeRequired} 小时\n" +
+               $"健康: {item.healthGain:+0.0;-0.0;0}\n" +
+               $"情绪: V{item.vChange:+0.0;-0.0;0}, A{item.aChange:+0.0;-0.0;0}\n" +
+               $"说明: {description}";
     }
 }
