@@ -135,11 +135,13 @@ public class ConsumableCard : MonoBehaviour
             itemNameText.text = itemName;
         }
 
-        // 更新分类
+        // 更新分类 - ✨ 使用本地化的分类标签和分类名称
         if (categoryText != null)
         {
             string categoryLabel = GetLocalizedString("category", "分类");
-            string categoryLocalized = GetLocalizedString($"category_{itemData.category}", itemData.category);
+            // 使用本地化的分类名称 key: category_food, category_rest 等
+            string categoryLocalizationKey = $"category_{itemData.category}";
+            string categoryLocalized = GetLocalizedString(categoryLocalizationKey, itemData.category);
             categoryText.text = $"{categoryLabel}: {categoryLocalized}";
             categoryText.color = GetCategoryColor(itemData.category);
         }
@@ -147,21 +149,21 @@ public class ConsumableCard : MonoBehaviour
         // 更新费用（金币）
         if (costText != null)
         {
-            string costLabel = GetLocalizedString("cost", "费用");
+            string costLabel = GetLocalizedString("cost", "花费");
             costText.text = $"{costLabel}: ${itemData.cost:F0}";
         }
 
         // 更新消耗时间
         if (timeText != null)
         {
-            string timeLabel = GetLocalizedString("time_required", "时间");
+            string timeLabel = GetLocalizedString("time_required", "消耗时间");
             timeText.text = $"{timeLabel}: {itemData.timeRequired:F1}h";
         }
 
         // 更新健康变化
         if (healthText != null)
         {
-            string healthLabel = GetLocalizedString("health_change", "健康");
+            string healthLabel = GetLocalizedString("health_change", "健康变化");
             string sign = itemData.healthGain > 0 ? "+" : "";
             healthText.text = $"{healthLabel}: {sign}{itemData.healthGain:F1}";
         }

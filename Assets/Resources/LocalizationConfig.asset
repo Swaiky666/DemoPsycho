@@ -55,18 +55,30 @@ MonoBehaviour:
   - key: remaining
     chinese: "\u5269\u4F59"
     english: Remaining
-  - key: job_delivery
+  - key: job_job_delivery
     chinese: "\u9001\u5FEB\u9012"
     english: Delivery
-  - key: job_restaurant
+  - key: job_job_restaurant
     chinese: "\u9910\u5385\u7AEF\u76D8\u5B50"
     english: Restaurant
-  - key: job_leaflet
+  - key: job_job_leaflet
     chinese: "\u53D1\u4F20\u5355"
     english: Leaflet
-  - key: job_bar
+  - key: job_job_bar
     chinese: "\u9152\u9986\u5E2E\u5DE5"
     english: Bar Work
+  - key: job_desc_job_delivery
+    chinese: "\u9A91\u8F66\u9001\u5FEB\u9012\uFF0C\u4F53\u529B\u6D3B\u3002\u83B7\u5F97\u4E30\u539A\u62A5\u916C\u3002"
+    english: Deliver packages by bike. Good payment.
+  - key: job_desc_job_restaurant
+    chinese: "\u5728\u9910\u5385\u7AEF\u76D8\u5B50\uFF0C\u9700\u8981\u4E00\u5B9A\u6280\u80FD\u3002"
+    english: Wait tables at restaurant. Requires skill.
+  - key: job_desc_job_leaflet
+    chinese: "\u5728\u8857\u5934\u53D1\u653E\u4F20\u5355\uFF0C\u8F7B\u677E\u5DE5\u4F5C\u3002"
+    english: Distribute leaflets. Light work.
+  - key: job_desc_job_bar
+    chinese: "\u5728\u9152\u9986\u5E2E\u5DE5\uFF0C\u9700\u8981\u8F83\u9AD8\u7684\u6280\u80FD\u3002"
+    english: Work at bar. Requires high skill.
   - key: skill_required
     chinese: "\u6280\u80FD\u8981\u6C42"
     english: Skill Required
@@ -145,6 +157,27 @@ MonoBehaviour:
   - key: value
     chinese: "\u6570\u503C"
     english: Value
+  - key: time_required
+    chinese: "\u6D88\u8017\u65F6\u95F4"
+    english: Time Required
+  - key: health_change
+    chinese: "\u5065\u5EB7\u53D8\u5316"
+    english: Health Change
+  - key: category
+    chinese: "\u5206\u7C7B"
+    english: Category
+  - key: category_food
+    chinese: "\u98DF\u7269"
+    english: Food
+  - key: category_rest
+    chinese: "\u4F11\u606F"
+    english: Rest
+  - key: category_entertainment
+    chinese: "\u5A31\u4E50"
+    english: Entertainment
+  - key: category_tool
+    chinese: "\u5DE5\u5177"
+    english: Tool
   - key: item_food_convenience
     chinese: "\u4FBF\u5229\u5E97\u4FBF\u5F53"
     english: Convenience Store Bento
@@ -194,143 +227,32 @@ MonoBehaviour:
     chinese: "\u5FEB\u901F\u6062\u590D"
     english: Quick recovery
   - key: desc_rest_meditation
-    chinese: "\u5E73\u9759\u5FC3\u7EEA"
-    english: Calm mind
+    chinese: "\u5FC3\u7075\u653E\u677E"
+    english: Mental relaxation
   - key: desc_ent_movie
-    chinese: "\u5A31\u4E50\u8EAB\u5FC3"
-    english: Entertainment
+    chinese: "\u653E\u677E\u8EAB\u5FC3"
+    english: Relax yourself
   - key: desc_ent_coffee
     chinese: "\u8212\u9002\u7684\u73AF\u5883"
-    english: Comfortable atmosphere
+    english: Comfortable place
   - key: desc_ent_game
-    chinese: "\u6C89\u6D78\u5F0F\u5A31\u4E50"
-    english: Immersive entertainment
+    chinese: "\u5C3D\u60C5\u5A31\u4E50"
+    english: Pure entertainment
   - key: desc_tool_bicycle
-    chinese: "\u63D0\u5347\u9001\u5FEB\u9012\u6548\u7387\u51CF20%\u65F6\u95F4"
-    english: Improve delivery efficiency -20% time
+    chinese: "\u589E\u52A0\u79FB\u52A8\u6548\u7387"
+    english: Increase efficiency
   - key: desc_tool_vitamins
-    chinese: "\u63D0\u5347\u8EAB\u4F53\u72B6\u6001"
-    english: Improve physical condition
-  - key: category_food
-    chinese: "\u98DF\u7269"
-    english: Food
-  - key: category_rest
-    chinese: "\u4F11\u606F"
-    english: Rest
-  - key: category_entertainment
-    chinese: "\u5A31\u4E50"
-    english: Entertainment
-  - key: category_tool
-    chinese: "\u5DE5\u5177"
-    english: Tool
-  - key: msg_insufficient_gold
-    chinese: "\u91D1\u5E01\u4E0D\u8DB3"
-    english: Insufficient Gold
-  - key: msg_consume_success
-    chinese: "\u6210\u529F\u4F7F\u7528"
-    english: Successfully used
-  - key: msg_time_insufficient
-    chinese: "\u65F6\u95F4\u4E0D\u8DB3"
-    english: Insufficient Time
-  - key: msg_cost_gold
-    chinese: "\u82B1\u8D39\u91D1\u5E01"
-    english: Cost Gold
-  - key: msg_consume_time
-    chinese: "\u6D88\u8017\u65F6\u95F4"
-    english: Time Required
-  - key: msg_health_change
-    chinese: "\u5065\u5EB7\u53D8\u5316"
-    english: Health Change
-  - key: msg_emotion_change
-    chinese: "\u60C5\u7EEA\u53D8\u5316"
-    english: Emotion Change
-  - key: msg_remaining_gold
-    chinese: "\u5269\u4F59\u91D1\u5E01"
-    english: Remaining Gold
-  - key: display_time_used
-    chinese: "\u5DF2\u7528"
-    english: Used
-  - key: display_time_percent
-    chinese: "\u8FDB\u5EA6"
-    english: Progress
-  - key: display_elapsed_time
-    chinese: "\u6D88\u8017\u65F6\u95F4"
-    english: Elapsed Time
-  - key: display_remaining_time
-    chinese: "\u5269\u4F59\u65F6\u95F4"
-    english: Remaining Time
-  - key: display_hours
-    chinese: "\u5C0F\u65F6"
-    english: Hours
-  - key: emotion_intensity_mild
-    chinese: "\u8F7B\u5EA6"
-    english: Mild
-  - key: emotion_intensity_moderate
-    chinese: "\u4E2D\u5EA6"
-    english: Moderate
-  - key: emotion_intensity_intense
-    chinese: "\u5F3A\u70C8"
-    english: Intense
-  - key: neutral
-    chinese: "\u4E2D\u6027"
-    english: Neutral
-  - key: emotion_Pleasant
-    chinese: "\u5FEB\u4E50"
-    english: Pleasant
-  - key: emotion_Excited
-    chinese: "\u5174\u594B"
-    english: Excited
-  - key: emotion_Angry
-    chinese: "\u6124\u6012"
-    english: Angry
-  - key: emotion_Sad
+    chinese: "\u8865\u5145\u8425\u517B"
+    english: Boost health
+  - key: emotion_happy
+    chinese: "\u6109\u5FEB"
+    english: Happy
+  - key: emotion_sad
     chinese: "\u60B2\u4F24"
     english: Sad
-  - key: emotion_Content
-    chinese: "\u6EE1\u8DB3"
-    english: Content
-  - key: emotion_Nervous
-    chinese: "\u7D27\u5F20"
-    english: Nervous
-  - key: emotion_Depressed
-    chinese: "\u6CAE\u4E27"
-    english: Depressed
-  - key: emotion_Calm
-    chinese: "\u5E73\u9759"
-    english: Calm
-  - key: emotion_category_activation
-    chinese: "\u6D3B\u8DC3"
-    english: Energetic
-  - key: emotion_category_pleasant
-    chinese: "\u6109\u5FEB"
-    english: Pleasant
-  - key: emotion_category_deactivation
-    chinese: "\u5E73\u9759"
-    english: Calm
-  - key: emotion_category_unpleasant
+  - key: emotion_excited
+    chinese: "\u5174\u594B"
+    english: Excited
+  - key: emotion_unhappy
     chinese: "\u4E0D\u6109\u5FEB"
-    english: Unpleasant
-  - key: debug_valence
-    chinese: V
-    english: V
-  - key: debug_arousal
-    chinese: A
-    english: A
-  - key: debug_radius
-    chinese: r
-    english: r
-  - key: debug_angle
-    chinese: "\u03B8"
-    english: "\u03B8"
-  - key: debug_intensity
-    chinese: "\u5F3A\u5EA6"
-    english: Intensity
-  - key: debug_sector
-    chinese: "\u6247\u533A"
-    english: Sector
-  - key: stats_health_low
-    chinese: "\u5065\u5EB7\u8FC7\u4F4E"
-    english: Health Too Low
-  - key: lang_chinese
-    chinese: "\u4E2D\u6587"
-    english: Chinese
+    english: Unhappy

@@ -9,6 +9,8 @@ using System;
 /// 用户可点击选择
 /// 支持条件判断和警告颜色显示
 /// ✨ 改进：把 canvasGroup.alpha 改为 Inspector 可控
+/// ✨ 改进：使用本地化的工作名称、时间段和工作描述
+/// ✨ 改进：时间段能正确从中文映射到英文本地化 key
 /// </summary>
 public class JobCard : MonoBehaviour
 {
@@ -117,12 +119,13 @@ public class JobCard : MonoBehaviour
 
     /// <summary>
     /// 更新卡牌 UI - 支持本地化
+    /// ✨ 使用本地化的工作名称、时间段和描述
     /// </summary>
     private void UpdateCardUI()
     {
         if (jobData == null) return;
 
-        // 更新工作名称（使用本地化）
+        // 更新工作名称（使用本地化 key）
         if (jobNameText != null)
         {
             string jobKey = $"job_{jobData.jobId}";
@@ -131,10 +134,14 @@ public class JobCard : MonoBehaviour
         }
 
         // 更新时间段（使用本地化）
+        // ✨ 时间段使用本地化 key: "morning", "noon", "afternoon", "night"
+        // ✨ 将中文时间段映射到对应的英文 key，使其能正确显示英文
         if (timeSlotText != null)
         {
             string timeSlotLabel = GetLocalizedString("time_slot", "时间段");
-            string timeSlotValue = GetLocalizedString(jobData.timeSlot.ToLower(), jobData.timeSlot);
+            // 将中文时间段映射到英文 key
+            string timeSlotKey = MapChineseTimeSlotToKey(jobData.timeSlot);
+            string timeSlotValue = GetLocalizedString(timeSlotKey, jobData.timeSlot);
             timeSlotText.text = $"{timeSlotLabel}: {timeSlotValue}";
         }
 
@@ -152,10 +159,12 @@ public class JobCard : MonoBehaviour
             payText.text = $"{payLabel}: {jobData.basePay:F0}";
         }
 
-        // 更新描述
+        // 更新描述（使用本地化 key）
         if (descriptionText != null)
         {
-            descriptionText.text = jobData.description;
+            string jobDescKey = $"job_desc_{jobData.jobId}";
+            string description = GetLocalizedString(jobDescKey, jobData.description);
+            descriptionText.text = description;
         }
 
         // 更新图标
@@ -357,6 +366,30 @@ public class JobCard : MonoBehaviour
     }
 
     /// <summary>
+    /// ✨ 将中文时间段映射到本地化 key
+    /// 这是解决时间段显示问题的关键！
+    /// JobData.timeSlot 存储的是中文值（"早上"、"中午" 等）
+    /// 我们需要将其映射到本地化系统中的英文 key（"morning"、"noon" 等）
+    /// 这样才能在英文模式下显示正确的英文时间段
+    /// </summary>
+    private string MapChineseTimeSlotToKey(string chineseTimeSlot)
+    {
+        return chineseTimeSlot switch
+        {
+            "早上" => "morning",
+            "中午" => "noon",
+            "下午" => "afternoon",
+            "晚上" => "night",
+            // 也支持直接使用英文 key（如果有人改了数据结构）
+            "morning" => "morning",
+            "noon" => "noon",
+            "afternoon" => "afternoon",
+            "night" => "night",
+            _ => chineseTimeSlot.ToLower()
+        };
+    }
+
+    /// <summary>
     /// 获取本地化字符串（带默认值）
     /// </summary>
     private string GetLocalizedString(string key, string defaultValue)
@@ -405,6 +438,7 @@ public class JobCard : MonoBehaviour
         Debug.Log($"\n========== JobCard 信息 ==========");
         Debug.Log($"工作名称: {jobData.jobName}");
         Debug.Log($"时间段: {jobData.timeSlot}");
+        Debug.Log($"时间段映射 key: {MapChineseTimeSlotToKey(jobData.timeSlot)}");
         Debug.Log($"技能要求: {jobData.requiredSkill}");
         Debug.Log($"薪资: {jobData.basePay}");
         Debug.Log($"可用: {isAvailable}");
