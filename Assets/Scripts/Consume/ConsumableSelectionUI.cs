@@ -47,6 +47,7 @@ public class ConsumableSelectionUI : MonoBehaviour
     private bool isUIActive = false;
     private bool isMovingToEndPoint = false;
     private bool canScroll = false;
+    private float uiActivationTime = 0f;  // ✨ 记录UI打开的时间，防止立即关闭
 
     private float containerMinX;
     private float containerMaxX;
@@ -101,16 +102,15 @@ public class ConsumableSelectionUI : MonoBehaviour
             CloseConsumableSelection();
         }
 
-        // ⭐ 禁用自动关闭逻辑 - 注释掉以测试
-        /*
-        if (isUIActive && Input.GetMouseButtonDown(0))
+        // 点击非卡牌区域关闭
+        // ✨ 添加延迟检查：打开后0.1秒内不响应点击，防止按钮点击事件立即触发关闭
+        if (isUIActive && Input.GetMouseButtonDown(0) && Time.time - uiActivationTime > 0.1f)
         {
             if (!IsPointerOverCard())
             {
                 CloseConsumableSelection();
             }
         }
-        */
 
         if (canScroll && !isMovingToEndPoint)
         {
@@ -208,6 +208,7 @@ public class ConsumableSelectionUI : MonoBehaviour
         if (isUIActive) return;
 
         isUIActive = true;
+        uiActivationTime = Time.time;  // ✨ 记录打开时间
 
         if (consumableSelectionPanel != null)
         {

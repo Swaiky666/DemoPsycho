@@ -2043,8 +2043,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   buttonType: 1
-  buttonId: workButton_1
-  buttonName: "\u5DE5\u4F5C\u7AD9"
+  buttonId: consumeButton_1
+  buttonName: "\u6D88\u8D39\u5361\u7EC4"
   normalMaterial: {fileID: 0}
   hoverMaterial: {fileID: 0}
   activeMaterial: {fileID: 0}
@@ -2849,7 +2849,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   buttonType: 0
   buttonId: workButton_1
-  buttonName: "\u5DE5\u4F5C\u7AD9"
+  buttonName: "\u5DE5\u4F5C\u5361\u7EC4"
   normalMaterial: {fileID: 0}
   hoverMaterial: {fileID: 0}
   activeMaterial: {fileID: 0}
