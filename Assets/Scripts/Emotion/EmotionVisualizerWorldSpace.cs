@@ -3,7 +3,9 @@ using TMPro;
 
 /// <summary>
 /// 完整的极坐标情绪可视化系统 - 支持中英文切换
-/// 调试版本：带有详细日志输出以追踪问题
+/// 修复版本：
+/// 1. 所有UI线段跟随 transform
+/// 2. 坐标倍率可在 Inspector 中调整
 /// </summary>
 public class EmotionVisualizerWorldSpace : MonoBehaviour
 {
@@ -16,9 +18,8 @@ public class EmotionVisualizerWorldSpace : MonoBehaviour
     [SerializeField] private Color xAxisColor = Color.white;
     [SerializeField] private Color zAxisColor = Color.white;
     
-    [Header("Emotion State - Inspector Debug")]
-    [SerializeField] private float valence = 0.5f;
-    [SerializeField] private float activation = 0.5f;
+    [Header("Game State Reference")]
+    [SerializeField] private AffectGameState gameState;
     
     [Header("Display")]
     [SerializeField] private TextMeshProUGUI emotionText;
@@ -48,6 +49,12 @@ public class EmotionVisualizerWorldSpace : MonoBehaviour
     [SerializeField] private Color safeZoneColor = new Color(0, 1, 0, 0.5f);
     private LineRenderer safeZoneCircle;
     
+    // ✨ 新增：坐标倍率
+    [Header("Coordinate Scale")]
+    [SerializeField] private float coordinateScale = 0.1f;  // 倍率：0.1 = 1/10 倍
+    [Range(0.01f, 1f)] [SerializeField] private float minCoordinateScale = 0.01f;  // 最小倍率
+    [Range(0.01f, 1f)] [SerializeField] private float maxCoordinateScale = 1f;     // 最大倍率
+    
     // Line Renderers
     private LineRenderer horizontalLine;
     private LineRenderer verticalLine;
@@ -63,10 +70,27 @@ public class EmotionVisualizerWorldSpace : MonoBehaviour
     
     // 调试标志
     [SerializeField] private bool debugMode = true;
+    
+    // ✨ 新增：UI 容器用于跟随
+    private Transform uiContainer;
 
     private void Start()
     {
         if (debugMode) Debug.Log("[EmotionVisualizer] Start() 开始执行");
+        
+        // ✨ 新增：创建 UI 容器
+        CreateUIContainer();
+        
+        // 自动查找 gameState
+        if (gameState == null)
+        {
+            gameState = FindObjectOfType<AffectGameState>();
+            if (gameState == null)
+            {
+                Debug.LogError("[EmotionVisualizer] 找不到 AffectGameState！");
+                return;
+            }
+        }
         
         if (lineMaterial == null)
         {
@@ -103,6 +127,13 @@ public class EmotionVisualizerWorldSpace : MonoBehaviour
         {
             Debug.LogError("[EmotionVisualizer] LocalizationManager.Instance 为 null！");
         }
+        
+        // 订阅 gameState 的效果应用事件
+        if (gameState != null)
+        {
+            gameState.OnEffectApplied += OnGameStateEffectApplied;
+            if (debugMode) Debug.Log("[EmotionVisualizer] 成功订阅 gameState.OnEffectApplied 事件");
+        }
     }
 
     private void OnDestroy()
@@ -110,6 +141,11 @@ public class EmotionVisualizerWorldSpace : MonoBehaviour
         if (LocalizationManager.Instance != null)
         {
             LocalizationManager.Instance.OnLanguageChanged -= OnLanguageChanged;
+        }
+        
+        if (gameState != null)
+        {
+            gameState.OnEffectApplied -= OnGameStateEffectApplied;
         }
     }
 
@@ -119,19 +155,44 @@ public class EmotionVisualizerWorldSpace : MonoBehaviour
     }
 
     /// <summary>
+    /// ✨ 新增：创建 UI 容器用于集中管理
+    /// </summary>
+    private void CreateUIContainer()
+    {
+        GameObject containerObj = new GameObject("UIContainer");
+        containerObj.transform.SetParent(transform);
+        containerObj.transform.localPosition = Vector3.zero;
+        containerObj.transform.localRotation = Quaternion.identity;
+        uiContainer = containerObj.transform;
+        
+        if (debugMode) Debug.Log("[EmotionVisualizer] UI 容器已创建");
+    }
+
+    /// <summary>
+    /// gameState 效果应用时的回调
+    /// </summary>
+    private void OnGameStateEffectApplied(System.Collections.Generic.List<string> effects)
+    {
+        if (debugMode)
+        {
+            Debug.Log($"[EmotionVisualizer] OnGameStateEffectApplied 被调用");
+            foreach (var effect in effects)
+            {
+                Debug.Log($"  • 效果: {effect}");
+            }
+            Debug.Log($"  • 当前情绪: V={gameState.valence:F2}, A={gameState.arousal:F2}");
+        }
+    }
+
+    /// <summary>
     /// 语言改变回调 - 更新所有标签显示
     /// </summary>
     private void OnLanguageChanged(LocalizationConfig.Language language)
     {
         if (debugMode) Debug.Log($"[EmotionVisualizer] OnLanguageChanged 被调用，新语言: {language}");
         
-        // 更新扇区标签
         UpdateSectorLabelsText();
-        
-        // 更新分类标签
         UpdateCategoryLabelsText();
-        
-        // 更新当前情绪点的文字
         UpdateEmotionPointText();
         
         if (debugMode) Debug.Log("[EmotionVisualizer] 所有标签更新完成");
@@ -154,7 +215,6 @@ public class EmotionVisualizerWorldSpace : MonoBehaviour
             
             if (tmp != null)
             {
-                // 使用 GetDisplayName() 获取本地化名称
                 tmp.text = sector.GetDisplayName();
             }
             
@@ -164,21 +224,13 @@ public class EmotionVisualizerWorldSpace : MonoBehaviour
 
     /// <summary>
     /// 更新所有分类标签的文本
-    /// 修复版本：直接更新存储的 TextMeshPro 引用
     /// </summary>
     private void UpdateCategoryLabelsText()
     {
         if (debugMode) Debug.Log($"[EmotionVisualizer] UpdateCategoryLabelsText 开始，当前标签列表数量: {categoryLabelTexts?.Count ?? -1}");
         
-        if (categoryLabelTexts == null)
+        if (categoryLabelTexts == null || categoryLabelTexts.Count == 0)
         {
-            Debug.LogError("[EmotionVisualizer] categoryLabelTexts 为 null！");
-            return;
-        }
-        
-        if (categoryLabelTexts.Count == 0)
-        {
-            Debug.LogWarning("[EmotionVisualizer] categoryLabelTexts 为空！");
             return;
         }
         
@@ -190,7 +242,6 @@ public class EmotionVisualizerWorldSpace : MonoBehaviour
             new { name = "UNPLEASANT", key = "emotion_category_unpleasant" }
         };
 
-        // 更新所有存储的分类标签
         for (int i = 0; i < categoryLabelTexts.Count && i < categoryData.Length; i++)
         {
             TextMeshPro tmp = categoryLabelTexts[i];
@@ -203,14 +254,11 @@ public class EmotionVisualizerWorldSpace : MonoBehaviour
             string oldText = tmp.text;
             string localizedText = GetLocalizedCategoryName(categoryData[i].key, categoryData[i].name);
             tmp.text = localizedText;
-            
-            if (debugMode) Debug.Log($"[EmotionVisualizer] 标签 {i}: '{oldText}' → '{localizedText}' (key: {categoryData[i].key})");
         }
     }
 
     /// <summary>
     /// 获取本地化的分类名称
-    /// 修复版本：正确处理 key 未找到的情况
     /// </summary>
     private string GetLocalizedCategoryName(string key, string defaultName)
     {
@@ -218,70 +266,74 @@ public class EmotionVisualizerWorldSpace : MonoBehaviour
         {
             string result = LocalizationManager.Instance.GetString(key);
             
-            if (debugMode) Debug.Log($"[EmotionVisualizer] GetString('{key}') 返回: '{result}'");
-            
-            // 如果返回值等于 key，说明没有找到本地化，使用默认值
             if (result != key && !string.IsNullOrEmpty(result))
             {
-                if (debugMode) Debug.Log($"[EmotionVisualizer] 本地化成功: {result}");
                 return result;
             }
         }
         
-        // 降级：返回默认名称
-        if (debugMode) Debug.Log($"[EmotionVisualizer] 本地化失败，使用默认值: {defaultName}");
         return defaultName;
     }
 
     /// <summary>
-    /// 更新当前情绪点的文字
+    /// 更新情绪点上方的文字
     /// </summary>
     private void UpdateEmotionPointText()
     {
-        if (emotionPointText != null && classifier != null)
-        {
-            EmotionClassifier.Result result = classifier.GetCurrentResult();
-            emotionPointText.text = result.displayName;
-        }
+        if (emotionPointText == null || classifier == null) return;
+        
+        EmotionClassifier.Result result = classifier.GetCurrentResult();
+        emotionPointText.text = result.displayName;
     }
 
     /// <summary>
-    /// 创建坐标系统（使用本地坐标）
+    /// 创建坐标系统
+    /// ✨ 改进：所有线段都是 uiContainer 的子对象
     /// </summary>
     private void CreateCoordinateSystem()
     {
-        horizontalLine = CreateLineRenderer("HorizontalLine", xAxisColor);
-        horizontalLine.SetPositions(new[] {
-            new Vector3(-gridSize * 0.5f, 0, 0),
-            new Vector3(gridSize * 0.5f, 0, 0)
+        if (debugMode) Debug.Log("[EmotionVisualizer] CreateCoordinateSystem 开始");
+        
+        // X 轴（Valence 轴）
+        horizontalLine = CreateLineRenderer("XAxis", xAxisColor);
+        horizontalLine.SetPositions(new[] { 
+            new Vector3(-gridSize * 0.5f, 0.05f, 0),
+            new Vector3(gridSize * 0.5f, 0.05f, 0)
         });
 
-        verticalLine = CreateLineRenderer("VerticalLine", zAxisColor);
-        verticalLine.SetPositions(new[] {
-            new Vector3(0, 0, -gridSize * 0.5f),
-            new Vector3(0, 0, gridSize * 0.5f)
+        // Z 轴（Activation 轴）
+        verticalLine = CreateLineRenderer("ZAxis", zAxisColor);
+        verticalLine.SetPositions(new[] { 
+            new Vector3(0, 0.05f, -gridSize * 0.5f),
+            new Vector3(0, 0.05f, gridSize * 0.5f)
         });
 
-        circleLine = CreateLineRenderer("CircleBoundary", new Color(0.7f, 0.7f, 0.7f));
-        DrawCircleTopDown(circleLine, gridSize * 0.5f, 64);
+        // 圆形轨迹
+        circleLine = CreateLineRenderer("CircleLine", new Color(0.5f, 0.5f, 0.5f, 0.5f));
+        DrawCircleTopDown(circleLine, gridSize * 0.35f, 32);
 
+        // 安全区圆形
         safeZoneCircle = CreateLineRenderer("SafeZoneCircle", safeZoneColor);
-        DrawCircleTopDown(safeZoneCircle, safeZoneRadius, 64);
+        DrawCircleTopDown(safeZoneCircle, safeZoneRadius, 32);
 
+        // 半径线（会动态更新）
+        radiusLine = CreateLineRenderer("RadiusLine", Color.white);
+
+        // 当前点
         if (currentPointPrefab != null)
         {
-            currentPointInstance = Instantiate(currentPointPrefab, transform);
+            currentPointInstance = Instantiate(currentPointPrefab, uiContainer);
             currentPointInstance.name = "CurrentPoint";
-            currentPointInstance.transform.localPosition = new Vector3(0, 0.1f, 0);
-            
+            currentPointInstance.transform.localPosition = Vector3.zero;
+
             CreateEmotionPointText();
         }
         else
         {
-            Debug.LogWarning("CurrentPointPrefab is not assigned!");
+            Debug.LogWarning("[EmotionVisualizer] CurrentPointPrefab is not assigned!");
         }
-        
-        radiusLine = CreateLineRenderer("RadiusLine", new Color(1f, 1f, 0f, 0.7f));
+
+        if (debugMode) Debug.Log("[EmotionVisualizer] CreateCoordinateSystem 完成");
     }
 
     /// <summary>
@@ -300,7 +352,6 @@ public class EmotionVisualizerWorldSpace : MonoBehaviour
         emotionPointText.alignment = TextAlignmentOptions.Center;
         emotionPointText.color = Color.white;
         
-        // 应用自定义字体
         if (customFont != null)
         {
             emotionPointText.font = customFont;
@@ -311,12 +362,13 @@ public class EmotionVisualizerWorldSpace : MonoBehaviour
     }
 
     /// <summary>
-    /// 创建 LineRenderer（使用本地坐标）
+    /// 创建 LineRenderer
+    /// ✨ 改进：所有线段都在 uiContainer 下
     /// </summary>
     private LineRenderer CreateLineRenderer(string name, Color color)
     {
         GameObject lineObj = new GameObject(name);
-        lineObj.transform.SetParent(transform);
+        lineObj.transform.SetParent(uiContainer);  // ✨ 改为 uiContainer
         lineObj.transform.localPosition = Vector3.zero;
         lineObj.transform.localRotation = Quaternion.identity;
 
@@ -327,9 +379,7 @@ public class EmotionVisualizerWorldSpace : MonoBehaviour
         lr.startWidth = lineWidth;
         lr.endWidth = lineWidth;
         lr.sortingOrder = -1;
-        
-        // 使用本地空间坐标
-        lr.useWorldSpace = false;
+        lr.useWorldSpace = false;  // 使用本地空间坐标
 
         return lr;
     }
@@ -356,69 +406,66 @@ public class EmotionVisualizerWorldSpace : MonoBehaviour
     /// </summary>
     private void CreateSectorLabels()
     {
+        if (debugMode) Debug.Log("[EmotionVisualizer] CreateSectorLabels 开始");
+        
+        GameObject containerObj = new GameObject("SectorLabels");
+        containerObj.transform.SetParent(uiContainer);  // ✨ 改为 uiContainer
+        containerObj.transform.localPosition = Vector3.zero;
+        containerObj.transform.localRotation = Quaternion.identity;
+        sectorLabelsContainer = containerObj.transform;
+
         if (sectorConfig == null || sectorConfig.sectors == null || sectorConfig.sectors.Length == 0)
         {
-            Debug.LogWarning("EmotionVisualizerWorldSpace: No sectorConfig or sectors defined!");
+            Debug.LogWarning("[EmotionVisualizer] 没有设置 SectorConfig 或 Sectors 为空！");
             return;
         }
 
-        GameObject containerObj = new GameObject("SectorLabels");
-        containerObj.transform.SetParent(transform);
-        containerObj.transform.localPosition = Vector3.zero;
-        sectorLabelsContainer = containerObj.transform;
-
+        int sectorIndex = 0;
         foreach (var sector in sectorConfig.sectors)
         {
-            CreateSectorLabel(sector);
+            GameObject labelObj = new GameObject($"Sector_{sector.id}");
+            labelObj.transform.SetParent(sectorLabelsContainer);
+
+            float labelRadius = gridSize * 0.25f;
+            float angleRad = sector.centerDeg * Mathf.Deg2Rad;
+            float x = Mathf.Cos(angleRad) * labelRadius;
+            float z = Mathf.Sin(angleRad) * labelRadius;
+            
+            labelObj.transform.localPosition = new Vector3(x, 0.1f, z);
+            labelObj.transform.localRotation = Quaternion.Euler(90, 0, 0);
+
+            TextMeshPro tmp = labelObj.AddComponent<TextMeshPro>();
+            tmp.text = sector.GetDisplayName();
+            tmp.fontSize = 3f;
+            tmp.alignment = TextAlignmentOptions.Center;
+            tmp.fontStyle = FontStyles.Bold;
+            tmp.color = sector.uiColor;
+            tmp.overflowMode = TextOverflowModes.Overflow;
+            
+            if (customFont != null)
+                tmp.font = customFont;
+
+            RectTransform rt = labelObj.GetComponent<RectTransform>();
+            rt.sizeDelta = new Vector2(3, 1);
+
+            if (debugMode) Debug.Log($"[EmotionVisualizer] 创建扇区标签 {sectorIndex}: {sector.id}");
+            sectorIndex++;
         }
+
+        if (debugMode) Debug.Log($"[EmotionVisualizer] CreateSectorLabels 完成，共创建 {sectorIndex} 个标签");
     }
 
     /// <summary>
-    /// 创建单个扇区标签
-    /// </summary>
-    private void CreateSectorLabel(EmotionSectorsConfig.Sector sector)
-    {
-        GameObject labelObj = new GameObject($"Sector_{sector.id}");
-        labelObj.transform.SetParent(sectorLabelsContainer);
-
-        float centerAngleDeg = sector.centerDeg;
-        float centerAngleRad = centerAngleDeg * Mathf.Deg2Rad;
-        
-        float labelRadius = gridSize * 0.35f;
-        float x = Mathf.Cos(centerAngleRad) * labelRadius;
-        float z = Mathf.Sin(centerAngleRad) * labelRadius;
-        
-        labelObj.transform.localPosition = new Vector3(x, 0.1f, z);
-        labelObj.transform.localRotation = Quaternion.Euler(90, 0, 0);
-
-        TextMeshPro tmp = labelObj.AddComponent<TextMeshPro>();
-        // 使用 GetDisplayName() 获取本地化名称
-        tmp.text = sector.GetDisplayName();
-        tmp.fontSize = 4f;
-        tmp.alignment = TextAlignmentOptions.Center;
-        tmp.color = sector.uiColor;
-        
-        // 应用自定义字体
-        if (customFont != null)
-        {
-            tmp.font = customFont;
-        }
-
-        RectTransform rt = labelObj.GetComponent<RectTransform>();
-        rt.sizeDelta = new Vector2(2, 1);
-    }
-
-    /// <summary>
-    /// 创建4个分类标签 - 支持中英文切换
-    /// 修复版本：存储 TextMeshPro 引用以便动态更新
+    /// 创建分类标签（四个主要方向）
     /// </summary>
     private void CreateCategoryLabels()
     {
         if (debugMode) Debug.Log("[EmotionVisualizer] CreateCategoryLabels 开始");
         
         GameObject containerObj = new GameObject("CategoryLabels");
-        containerObj.transform.SetParent(transform);
+        containerObj.transform.SetParent(uiContainer);  // ✨ 改为 uiContainer
         containerObj.transform.localPosition = Vector3.zero;
+        containerObj.transform.localRotation = Quaternion.identity;
         categoryLabelsContainer = containerObj.transform;
 
         var categoryData = new[]
@@ -445,11 +492,8 @@ public class EmotionVisualizerWorldSpace : MonoBehaviour
 
             TextMeshPro tmp = labelObj.AddComponent<TextMeshPro>();
             
-            // 获取本地化的分类名称
             string localizedText = GetLocalizedCategoryName(category.key, category.name);
             tmp.text = localizedText;
-            
-            if (debugMode) Debug.Log($"[EmotionVisualizer] 创建分类标签 {categoryIndex}: '{localizedText}'");
             
             tmp.fontSize = categoryTextFontSize;
             tmp.alignment = TextAlignmentOptions.Center;
@@ -457,7 +501,6 @@ public class EmotionVisualizerWorldSpace : MonoBehaviour
             tmp.color = Color.white;
             tmp.overflowMode = TextOverflowModes.Overflow;
             
-            // 应用自定义字体
             if (customFont != null)
             {
                 tmp.font = customFont;
@@ -466,9 +509,8 @@ public class EmotionVisualizerWorldSpace : MonoBehaviour
             RectTransform rt = labelObj.GetComponent<RectTransform>();
             rt.sizeDelta = new Vector2(4, 2);
             
-            // 存储引用以便后续动态更新
             categoryLabelTexts.Add(tmp);
-            if (debugMode) Debug.Log($"[EmotionVisualizer] 已添加标签到列表，当前列表大小: {categoryLabelTexts.Count}");
+            if (debugMode) Debug.Log($"[EmotionVisualizer] 创建分类标签 {categoryIndex}: '{localizedText}'");
             
             categoryIndex++;
         }
@@ -477,18 +519,34 @@ public class EmotionVisualizerWorldSpace : MonoBehaviour
     }
 
     /// <summary>
-    /// 更新当前点和极坐标显示（使用本地坐标）
+    /// 更新当前点和极坐标显示
+    /// ✨ 改进：添加坐标倍率缩放
     /// </summary>
     private void UpdateCurrentPoint()
     {
-        if (classifier != null)
+        if (classifier == null) return;
+        
+        // 从 gameState 获取实时坐标
+        float valence = 0f;
+        float arousal = 0f;
+        
+        if (gameState != null)
         {
-            classifier.currentV = valence - 0.5f;
-            classifier.currentA = activation - 0.5f;
+            valence = gameState.valence;
+            arousal = gameState.arousal;
         }
+        
+        // ✨ 新增：应用坐标倍率
+        valence *= coordinateScale;
+        arousal *= coordinateScale;
+        
+        // 更新 classifier 的当前坐标
+        classifier.currentV = valence;
+        classifier.currentA = arousal;
 
-        float x = (valence - 0.5f) * gridSize;
-        float z = (activation - 0.5f) * gridSize;
+        // 计算像素位置
+        float x = valence * gridSize;
+        float z = arousal * gridSize;
 
         EmotionClassifier.Result classifyResult = classifier.GetCurrentResult();
 
@@ -536,13 +594,15 @@ public class EmotionVisualizerWorldSpace : MonoBehaviour
             debugText.text = string.Format(
                 "{0}: {1:F2} | {2}: {3:F2}\n" +
                 "{4}: {5:F2} | {6}: {7:F1}°\n" +
-                "{8}: {9}\n{10}: {11}",
+                "{8}: {9}\n{10}: {11}\n" +
+                "Scale: {12:F2}",  // ✨ 新增：显示当前倍率
                 vLabel, classifier.currentV,
                 aLabel, classifier.currentA,
                 rLabel, classifyResult.radius,
                 angleLabel, classifyResult.angleDeg,
                 intensityLabel, emotionIntensityLabel,
-                sectorLabel, classifyResult.displayName
+                sectorLabel, classifyResult.displayName,
+                coordinateScale
             );
         }
 
@@ -563,7 +623,6 @@ public class EmotionVisualizerWorldSpace : MonoBehaviour
 
     /// <summary>
     /// 获取本地化的调试标签
-    /// 修复版本：正确处理 key 未找到的情况
     /// </summary>
     private string GetLocalizedDebugLabel(string key, string defaultValue)
     {
@@ -571,7 +630,6 @@ public class EmotionVisualizerWorldSpace : MonoBehaviour
         {
             string result = LocalizationManager.Instance.GetString(key);
             
-            // 如果返回值等于 key，说明没有找到本地化
             if (result != key && !string.IsNullOrEmpty(result))
             {
                 return result;
@@ -619,26 +677,47 @@ public class EmotionVisualizerWorldSpace : MonoBehaviour
     public void DetectEmotion()
     {
         EmotionClassifier.Result result = classifier.GetCurrentResult();
-        Debug.Log($"Current coordinates: V={valence:F2}, A={activation:F2} -> Emotion: {result.displayName} [{result.intensity}]");
+        Debug.Log($"Current coordinates: V={classifier.currentV:F2}, A={classifier.currentA:F2} -> Emotion: {result.displayName} [{result.intensity}]");
     }
 
     /// <summary>
-    /// 外部接口：动态设置坐标
+    /// 调试菜单：打印当前情绪坐标
     /// </summary>
-    public void SetCoordinates(float newValence, float newActivation)
+    [ContextMenu("DEBUG: 打印当前情绪坐标")]
+    public void DebugPrintCoordinates()
     {
-        valence = Mathf.Clamp01(newValence);
-        activation = Mathf.Clamp01(newActivation);
+        if (gameState != null)
+        {
+            Debug.Log($"[DEBUG] GameState 情绪坐标: V={gameState.valence:F2}, A={gameState.arousal:F2}");
+            Debug.Log($"[DEBUG] 应用倍率 {coordinateScale} 后: V={gameState.valence * coordinateScale:F2}, A={gameState.arousal * coordinateScale:F2}");
+        }
+        if (classifier != null)
+        {
+            Debug.Log($"[DEBUG] Classifier 坐标: V={classifier.currentV:F2}, A={classifier.currentA:F2}");
+        }
     }
-    
+
     /// <summary>
-    /// 调试菜单：手动测试分类标签更新
+    /// 调试菜单：快速设置倍率
     /// </summary>
-    [ContextMenu("DEBUG: 手动触发分类标签更新")]
-    public void DebugUpdateCategoryLabels()
+    [ContextMenu("DEBUG: 设置倍率为 0.1")]
+    public void DebugSetScale01()
     {
-        Debug.Log("[EmotionVisualizer] 开始手动测试分类标签更新");
-        UpdateCategoryLabelsText();
-        Debug.Log("[EmotionVisualizer] 手动测试完成");
+        coordinateScale = 0.1f;
+        Debug.Log($"[DEBUG] 坐标倍率已设置为 {coordinateScale}");
+    }
+
+    [ContextMenu("DEBUG: 设置倍率为 0.5")]
+    public void DebugSetScale05()
+    {
+        coordinateScale = 0.5f;
+        Debug.Log($"[DEBUG] 坐标倍率已设置为 {coordinateScale}");
+    }
+
+    [ContextMenu("DEBUG: 设置倍率为 1.0")]
+    public void DebugSetScale10()
+    {
+        coordinateScale = 1.0f;
+        Debug.Log($"[DEBUG] 坐标倍率已设置为 {coordinateScale}");
     }
 }
