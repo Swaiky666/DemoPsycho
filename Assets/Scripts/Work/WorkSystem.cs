@@ -151,15 +151,21 @@ public class WorkSystem : MonoBehaviour
             gameState.ApplyEffect(effects);
         }
 
-        // 5) 增加经验和技能
+        // 5) 增加经验和技能（20%提升）
         playerExperience += job.requiredSkill * 0.5f;
-        float skillGain = job.requiredSkill * 0.1f;
+        float skillGain = job.requiredSkill * 0.2f;  // 改为20%
         playerSkill += skillGain;
 
         // 6) 应用健康消耗
         if (gameState != null)
         {
             gameState.ApplyEffect(new List<string> { $"health-{job.healthCost}" });
+        }
+
+        // 7) 同步工作技能到游戏状态（实时更新UI显示）
+        if (gameState != null)
+        {
+            gameState.workSkill = playerSkill;
         }
 
         // 打印成功日志
@@ -169,6 +175,7 @@ public class WorkSystem : MonoBehaviour
         Debug.Log($"  • 健康消耗: {job.healthCost}");
         Debug.Log($"  • 情绪变化: V{job.vChange:+0.0;-0.0;0}, A{job.aChange:+0.0;-0.0;0}");
         Debug.Log($"  • 经验获得: {job.requiredSkill * 0.5f}");
+        Debug.Log($"  • 技能提升: +{skillGain:F2}");
         Debug.Log($"  • 当前技能: {playerSkill:F1}, 经验: {playerExperience:F1}");
         Debug.Log($"  • 剩余时间: {timeResult.remainingHours:F1} 小时\n");
     }
@@ -268,15 +275,21 @@ public class WorkSystem : MonoBehaviour
             gameState.ApplyEffect(effects);
         }
 
-        // 5) 增加经验和技能
+        // 5) 增加经验和技能（20%提升）
         playerExperience += job.requiredSkill * 0.5f;  // 经验取决于技能要求
-        float skillGain = job.requiredSkill * 0.1f;
+        float skillGain = job.requiredSkill * 0.2f;  // 改为20%
         playerSkill += skillGain;
 
         // 6) 应用健康消耗
         if (gameState != null)
         {
             gameState.ApplyEffect(new List<string> { $"health-{job.healthCost}" });
+        }
+
+        // 7) 同步工作技能到游戏状态（实时更新UI显示）
+        if (gameState != null)
+        {
+            gameState.workSkill = playerSkill;
         }
 
         // 打印成功日志
