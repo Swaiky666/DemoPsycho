@@ -24,8 +24,16 @@ public class AffectGameState : MonoBehaviour
 
     [Header("属性")]
     [SerializeField] public float health = 100f;        // 健康值 (0-100)
+    [SerializeField] public float hunger = 100f;        // 饥饿值 (0-100)
     [SerializeField] public float valence = 0f;         // 情绪效价 (-10 ~ +10)
     [SerializeField] public float arousal = 0f;         // 情绪唤醒 (-10 ~ +10)
+
+
+    [Header("饥饿值设置")]
+    [SerializeField] public float hungerDecayPerHour = 5f;      // 每小时饥饿值下降
+    [SerializeField] public float hungerDecayWhileSleeping = 1f; // 睡眠时每小时饥饿值下降
+    [SerializeField] public float hungerWarningThreshold = 30f;  // 饥饿警告阈值
+    [SerializeField] public float hungerCriticalThreshold = 10f; // 危险饥饿阈值
 
     [Header("可选")]
     [SerializeField] public float workSkill = 10f;      // 工作能力
@@ -74,9 +82,10 @@ public class AffectGameState : MonoBehaviour
         // 数值变化格式：[属性][+/-][数值]
         // 例: V+2, A-1, gold+50, health-10, time-0.5
         var match = System.Text.RegularExpressions.Regex.Match(
-            effect, 
-            @"^([VA]|gold|health|time|workSkill|emotionStability)([+\-])([\d\.]+)$"
-        );
+        effect, 
+        @"^([VA]|gold|health|time|workSkill|emotionStability|hunger)([+\-])([\d\.]+)$"
+    );
+        
 
         if (!match.Success)
         {
@@ -112,6 +121,9 @@ public class AffectGameState : MonoBehaviour
                 break;
             case "emotionStability":
                 emotionStability = Mathf.Clamp(emotionStability + value, 0, 100);
+                break;
+            case "hunger":
+                hunger = Mathf.Clamp(hunger + value, 0, 100);
                 break;
         }
     }

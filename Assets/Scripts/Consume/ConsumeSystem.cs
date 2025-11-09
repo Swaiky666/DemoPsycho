@@ -211,6 +211,9 @@ public class ConsumeSystem : MonoBehaviour
             else if (item.healthGain < 0)
                 effects.Add($"health{item.healthGain}");
 
+            if (item.hungerRestore > 0)
+            effects.Add($"hunger+{item.hungerRestore:F0}");
+
             gameState.ApplyEffect(effects);
         }
     }

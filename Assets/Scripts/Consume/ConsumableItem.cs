@@ -24,13 +24,14 @@ public class ConsumableItem
     public float healthGain = 10f;
     public float vChange = 1f;
     public float aChange = -0.5f;
+    public float hungerRestore = 0f;
 
     [Header("UI 展示（可选）")]
     public Sprite itemIcon;
     public Color itemColor = Color.white;
 
     [Header("特殊标记")]
-    public bool isSleepToNextDay = false;  // ✨ 新增：是否为"睡到第二天"类型
+    public bool isSleepToNextDay = false;  
 
     public ConsumableItem(
         string id,
@@ -52,6 +53,7 @@ public class ConsumableItem
         vChange = v;
         aChange = a;
         descriptionKey = descKey;
+        hungerRestore = 0f;
     }
 
     public string GetFormattedInfo()

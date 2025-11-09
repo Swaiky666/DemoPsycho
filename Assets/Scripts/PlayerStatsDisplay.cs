@@ -14,6 +14,7 @@ public class PlayerStatsDisplay : MonoBehaviour
     [SerializeField] private TextMeshProUGUI valenceText;     // 情绪效价
     [SerializeField] private TextMeshProUGUI arousalText;     // 情绪唤醒
     [SerializeField] private TextMeshProUGUI timeText;        // 当前时间
+    [SerializeField] private TextMeshProUGUI hungerText;     // 饥饿值
 
     [Header("系统引用")]
     [SerializeField] private AffectGameState gameState;
@@ -126,7 +127,30 @@ public class PlayerStatsDisplay : MonoBehaviour
         UpdateValenceDisplay();
         UpdateArousalDisplay();
         UpdateTimeDisplay();
+        UpdateHungerDisplay();
     }
+
+    /// <summary>
+/// ✨ 新增：更新饥饿值显示
+/// </summary>
+private void UpdateHungerDisplay()
+{
+    if (hungerText == null || gameState == null) return;
+
+    string hunger = $"{gameState.hunger:F1}";
+    string hungerLabel = GetLocalizedLabel("hunger", "饥饿");
+    
+    // 根据饥饿值改变颜色
+    Color color = Color.white;
+    if (gameState.hunger < gameState.hungerCriticalThreshold)
+        color = Color.red;
+    else if (gameState.hunger < gameState.hungerWarningThreshold)
+        color = new Color(1f, 0.5f, 0f); // 橙色
+
+    hungerText.text = $"{hungerLabel}: {hunger}";
+    hungerText.color = color;
+}
+
 
     /// <summary>
     /// 更新健康值显示

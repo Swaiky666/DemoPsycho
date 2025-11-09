@@ -103,33 +103,65 @@ public partial class TimeManager : MonoBehaviour
     /// <param name="hours">要消耗的小时数</param>
     /// <param name="action">行为名称（例如"送快递"）</param>
     /// <returns>成功消耗返回 true，失败返回 false</returns>
-    public bool TryConsumeTime(float hours, string action = "未命名行为")
+   public bool TryConsumeTime(float hours, string action = "未命名行为")
     {
         float remainTime = GetRemainTime();
 
-        // 检查时间是否足够
         if (remainTime < hours)
         {
             Debug.LogWarning($"[TimeManager] 时间不足！请求消耗 {hours} 小时，剩余仅 {remainTime:F1} 小时");
-            return false;  // 消耗被驳回
+            return false;
         }
 
         // 消耗时间
         currentDayTimeUsed += hours;
         dailyLog.Add($"{action}: -{hours} 小时 (剩余: {GetRemainTime():F1}h)");
 
+        // ✨ 新增：处理饥饿值下降
+        ApplyHungerDecay(hours, action);
+
         Debug.Log($"[TimeManager] ✓ {action} 消耗 {hours} 小时 | 今日已用: {currentDayTimeUsed:F1}h / {currentDayTotalTime}h");
 
-        // 广播事件
         onTimeUpdated?.Invoke(GetRemainTime(), currentDayTimeUsed, currentDayTotalTime);
 
-        // 检查当天是否已满
         if (Mathf.Approximately(GetRemainTime(), 0f))
         {
             Debug.Log("[TimeManager] 今日时间已满！进入晚上结算阶段");
         }
 
-        return true;  // 消耗成功
+        return true;
+    }
+
+    /// <summary>
+    /// ✨ 新增：应用饥饿值下降
+    /// </summary>
+    private void ApplyHungerDecay(float hours, string action)
+    {
+        var gameState = FindObjectOfType<AffectGameState>();
+        if (gameState == null) return;
+
+        // 判断是否在睡觉（睡眠时饥饿下降减缓）
+        bool isSleeping = action.Contains("睡眠") || action.Contains("sleep") || action.Contains("休息");
+        
+        float hungerDecay = isSleeping 
+            ? hours * gameState.hungerDecayWhileSleeping 
+            : hours * gameState.hungerDecayPerHour;
+
+        gameState.ApplyEffect(new List<string> { $"hunger-{hungerDecay:F1}" });
+
+        Debug.Log($"[TimeManager] 饥饿值下降: -{hungerDecay:F1} (当前: {gameState.hunger:F1})");
+
+        // 饥饿警告
+        if (gameState.hunger < gameState.hungerCriticalThreshold)
+        {
+            Debug.LogWarning($"⚠️ 饥饿值危险！({gameState.hunger:F1})");
+            gameState.ApplyEffect(new List<string> { "V-2", "A+1" }); // 非常饥饿影响情绪
+        }
+        else if (gameState.hunger < gameState.hungerWarningThreshold)
+        {
+            Debug.LogWarning($"⚠️ 感到饥饿 ({gameState.hunger:F1})");
+            gameState.ApplyEffect(new List<string> { "V-1" }); // 轻微饥饿影响情绪
+        }
     }
 
     /// <summary>

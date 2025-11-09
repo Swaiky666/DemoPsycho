@@ -61,22 +61,23 @@ public static class ConsumableItemDatabase
     // ========== 食物分类 (Food) ==========
 
     private static ConsumableItem GetFoodConvenience()
+{
+    return new ConsumableItem(
+        id: "food_convenience",
+        nameKey: "item_food_convenience",
+        categoryType: "food",
+        costGold: 15f,
+        timeHours: 0.5f,
+        health: 10f,
+        v: 1f,
+        a: -0.5f,
+        descKey: "desc_food_convenience"
+    )
     {
-        return new ConsumableItem(
-            id: "food_convenience",
-            nameKey: "item_food_convenience",
-            categoryType: "food",
-            costGold: 15f,
-            timeHours: 0.5f,
-            health: 10f,
-            v: 1f,
-            a: -0.5f,
-            descKey: "desc_food_convenience"
-        )
-        {
-            itemColor = new Color(1f, 0.8f, 0.4f)
-        };
-    }
+        itemColor = new Color(1f, 0.8f, 0.4f),
+        hungerRestore = 30f 
+    };
+}
 
     private static ConsumableItem GetFoodRestaurant()
     {
@@ -92,7 +93,8 @@ public static class ConsumableItemDatabase
             descKey: "desc_food_restaurant"
         )
         {
-            itemColor = new Color(1f, 0.8f, 0.4f)
+            itemColor = new Color(1f, 0.8f, 0.4f),
+            hungerRestore = 50f
         };
     }
 
@@ -110,7 +112,8 @@ public static class ConsumableItemDatabase
             descKey: "desc_food_instant"
         )
         {
-            itemColor = new Color(1f, 0.8f, 0.4f)
+            itemColor = new Color(1f, 0.8f, 0.4f),
+            hungerRestore = 20f,
         };
     }
 

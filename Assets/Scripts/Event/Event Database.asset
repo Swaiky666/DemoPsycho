@@ -12,4 +12,727 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b32c1b47c92c64c0e8354027704b6b6b, type: 3}
   m_Name: Event Database
   m_EditorClassIdentifier: 
-  events: []
+  events:
+  - eventId: event_hunger_crisis
+    eventName: "\u9965\u997F\u96BE\u8010"
+    category: 0
+    storyKey: story_hunger_crisis
+    triggerProbability: 0
+    conditions:
+    - type: 0
+      value: 20
+      comparison: 0
+      flagName: 
+    choices:
+    - choiceId: hunger_buy_food
+      choiceTextKey: choice_hunger_buy_food
+      resultTextKey: result_hunger_buy_food
+      effects:
+      - gold-30
+      - hunger+50
+      - V+2
+      onChoiceFlag: 
+      nextEventId: 
+      endsConversation: 1
+    - choiceId: hunger_endure
+      choiceTextKey: choice_hunger_endure
+      resultTextKey: result_hunger_endure
+      effects:
+      - V-3
+      - A+2
+      - health-10
+      onChoiceFlag: 
+      nextEventId: 
+      endsConversation: 1
+    requiredFlags: []
+    excludedFlags: []
+    onTriggerFlag: hunger_crisis_occurred
+    canSkip: 1
+    eventWeight: 1
+  - eventId: event_skip_meal
+    eventName: "\u9519\u8FC7\u7528\u9910\u65F6\u95F4"
+    category: 2
+    storyKey: story_skip_meal
+    triggerProbability: 0.15
+    conditions:
+    - type: 7
+      value: 1
+      comparison: 2
+      flagName: 
+    choices:
+    - choiceId: skip_quick_bite
+      choiceTextKey: choice_skip_quick_bite
+      resultTextKey: result_skip_quick_bite
+      effects:
+      - gold-10
+      - hunger+20
+      - time-0.5
+      onChoiceFlag: 
+      nextEventId: 
+      endsConversation: 1
+    - choiceId: skip_continue_work
+      choiceTextKey: choice_skip_continue_work
+      resultTextKey: result_skip_continue_work
+      effects:
+      - V-1
+      - A+1
+      onChoiceFlag: 
+      nextEventId: 
+      endsConversation: 1
+    requiredFlags: []
+    excludedFlags: []
+    onTriggerFlag: 
+    canSkip: 1
+    eventWeight: 1
+  - eventId: event_food_shortage
+    eventName: "\u56CA\u4E2D\u7F9E\u6DA9"
+    category: 2
+    storyKey: story_food_shortage
+    triggerProbability: 0.1
+    conditions:
+    - type: 3
+      value: 50
+      comparison: 0
+      flagName: 
+    choices:
+    - choiceId: food_cheap_meal
+      choiceTextKey: choice_food_cheap_meal
+      resultTextKey: result_food_cheap_meal
+      effects:
+      - gold-5
+      - hunger+15
+      - V-0.5
+      onChoiceFlag: 
+      nextEventId: 
+      endsConversation: 1
+    - choiceId: food_borrow_money
+      choiceTextKey: choice_food_borrow_money
+      resultTextKey: result_food_borrow_money
+      effects:
+      - gold+50
+      - V-1
+      - A+1
+      onChoiceFlag: borrowed_money_for_food
+      nextEventId: 
+      endsConversation: 1
+    requiredFlags: []
+    excludedFlags: []
+    onTriggerFlag: 
+    canSkip: 1
+    eventWeight: 1
+  - eventId: event_overwork
+    eventName: "\u8FC7\u52B3\u75C7\u72B6"
+    category: 0
+    storyKey: story_overwork
+    triggerProbability: 0
+    conditions:
+    - type: 0
+      value: 40
+      comparison: 0
+      flagName: 
+    choices:
+    - choiceId: overwork_rest
+      choiceTextKey: choice_overwork_rest
+      resultTextKey: result_overwork_rest
+      effects:
+      - health+30
+      - A-2
+      - hunger-5
+      onChoiceFlag: chose_rest_for_overwork
+      nextEventId: 
+      endsConversation: 1
+    - choiceId: overwork_continue
+      choiceTextKey: choice_overwork_continue
+      resultTextKey: result_overwork_continue
+      effects:
+      - health-10
+      - V-2
+      - A+2
+      onChoiceFlag: chose_continue_for_overwork
+      nextEventId: 
+      endsConversation: 1
+    requiredFlags: []
+    excludedFlags: []
+    onTriggerFlag: overwork_event_occurred
+    canSkip: 1
+    eventWeight: 1
+  - eventId: event_depression
+    eventName: "\u60C5\u7EEA\u4F4E\u8C37"
+    category: 0
+    storyKey: story_depression
+    triggerProbability: 0
+    conditions:
+    - type: 1
+      value: -5
+      comparison: 0
+      flagName: 
+    choices:
+    - choiceId: depression_seek_help
+      choiceTextKey: choice_depression_seek_help
+      resultTextKey: result_depression_seek_help
+      effects:
+      - V+2
+      - A-1
+      onChoiceFlag: depression_seeking_help
+      nextEventId: 
+      endsConversation: 1
+    - choiceId: depression_endure
+      choiceTextKey: choice_depression_endure
+      resultTextKey: result_depression_endure
+      effects:
+      - V+0.5
+      - A+0.5
+      onChoiceFlag: 
+      nextEventId: 
+      endsConversation: 1
+    requiredFlags: []
+    excludedFlags: []
+    onTriggerFlag: depression_event_occurred
+    canSkip: 1
+    eventWeight: 1
+  - eventId: event_health_crisis
+    eventName: "\u5065\u5EB7\u5371\u673A"
+    category: 0
+    storyKey: story_health_crisis
+    triggerProbability: 0.05
+    conditions:
+    - type: 0
+      value: 20
+      comparison: 0
+      flagName: 
+    choices:
+    - choiceId: health_see_doctor
+      choiceTextKey: choice_see_doctor
+      resultTextKey: result_see_doctor
+      effects:
+      - health+40
+      - gold-100
+      - V+1
+      onChoiceFlag: 
+      nextEventId: 
+      endsConversation: 1
+    - choiceId: health_ignore
+      choiceTextKey: choice_ignore
+      resultTextKey: result_ignore
+      effects:
+      - health-20
+      - V-2
+      onChoiceFlag: 
+      nextEventId: 
+      endsConversation: 1
+    requiredFlags: []
+    excludedFlags:
+    - health_crisis_occurred_recently
+    onTriggerFlag: health_crisis_occurred_recently
+    canSkip: 1
+    eventWeight: 1
+  - eventId: event_burnout
+    eventName: "\u5DE5\u4F5C\u5026\u6020"
+    category: 0
+    storyKey: story_burnout
+    triggerProbability: 0.08
+    conditions:
+    - type: 0
+      value: 50
+      comparison: 0
+      flagName: 
+    - type: 1
+      value: 2
+      comparison: 0
+      flagName: 
+    choices:
+    - choiceId: burnout_vacation
+      choiceTextKey: choice_take_vacation
+      resultTextKey: result_take_vacation
+      effects:
+      - health+50
+      - V+3
+      - A-2
+      - gold-200
+      onChoiceFlag: 
+      nextEventId: 
+      endsConversation: 1
+    - choiceId: burnout_push
+      choiceTextKey: choice_push_through_burnout
+      resultTextKey: result_push_through_burnout
+      effects:
+      - gold+100
+      - health-30
+      - V-3
+      onChoiceFlag: 
+      nextEventId: 
+      endsConversation: 1
+    requiredFlags: []
+    excludedFlags: []
+    onTriggerFlag: burnout_event_occurred
+    canSkip: 1
+    eventWeight: 1
+  - eventId: event_wealth
+    eventName: "\u8D22\u5BCC\u81A8\u80C0"
+    category: 2
+    storyKey: story_wealth
+    triggerProbability: 0.15
+    conditions:
+    - type: 3
+      value: 5000
+      comparison: 4
+      flagName: 
+    choices:
+    - choiceId: wealth_save
+      choiceTextKey: choice_wealth_save
+      resultTextKey: result_wealth_save
+      effects:
+      - V+1
+      - A-1
+      onChoiceFlag: wealth_saved
+      nextEventId: 
+      endsConversation: 1
+    - choiceId: wealth_spend
+      choiceTextKey: choice_wealth_spend
+      resultTextKey: result_wealth_spend
+      effects:
+      - gold-500
+      - V+2
+      - health+20
+      - hunger+30
+      onChoiceFlag: wealth_spent
+      nextEventId: 
+      endsConversation: 1
+    requiredFlags: []
+    excludedFlags: []
+    onTriggerFlag: wealth_event_occurred
+    canSkip: 1
+    eventWeight: 1
+  - eventId: event_poverty
+    eventName: "\u7ECF\u6D4E\u56F0\u96BE"
+    category: 2
+    storyKey: story_poverty
+    triggerProbability: 0.1
+    conditions:
+    - type: 3
+      value: 100
+      comparison: 0
+      flagName: 
+    choices:
+    - choiceId: poverty_work
+      choiceTextKey: choice_work_hard_poverty
+      resultTextKey: result_work_hard_poverty
+      effects:
+      - V-1
+      - A+1
+      - health-5
+      onChoiceFlag: chose_work_for_poverty
+      nextEventId: 
+      endsConversation: 1
+    - choiceId: poverty_help
+      choiceTextKey: choice_get_help_poverty
+      resultTextKey: result_get_help_poverty
+      effects:
+      - gold+300
+      - V+1
+      - A-1
+      onChoiceFlag: 
+      nextEventId: 
+      endsConversation: 1
+    requiredFlags: []
+    excludedFlags: []
+    onTriggerFlag: poverty_event_occurred
+    canSkip: 1
+    eventWeight: 1
+  - eventId: event_investment
+    eventName: "\u6295\u8D44\u673A\u4F1A"
+    category: 2
+    storyKey: story_investment
+    triggerProbability: 0.12
+    conditions: []
+    choices:
+    - choiceId: invest_risky
+      choiceTextKey: choice_invest_risky
+      resultTextKey: result_invest_risky
+      effects:
+      - gold+500
+      - V+2
+      - A+1
+      onChoiceFlag: investment_risky_taken
+      nextEventId: 
+      endsConversation: 1
+    - choiceId: invest_safe
+      choiceTextKey: choice_invest_safe
+      resultTextKey: result_invest_safe
+      effects:
+      - gold+100
+      - V+0.5
+      onChoiceFlag: 
+      nextEventId: 
+      endsConversation: 1
+    requiredFlags:
+    - wealth_saved
+    excludedFlags: []
+    onTriggerFlag: 
+    canSkip: 1
+    eventWeight: 1
+  - eventId: event_unexpected_expense
+    eventName: "\u610F\u5916\u5F00\u652F"
+    category: 2
+    storyKey: story_unexpected_expense
+    triggerProbability: 0.1
+    conditions: []
+    choices:
+    - choiceId: expense_pay
+      choiceTextKey: choice_expense_pay
+      resultTextKey: result_expense_pay
+      effects:
+      - gold-200
+      - V-1
+      - A+1
+      onChoiceFlag: 
+      nextEventId: 
+      endsConversation: 1
+    - choiceId: expense_defer
+      choiceTextKey: choice_expense_defer
+      resultTextKey: result_expense_defer
+      effects:
+      - A+2
+      - V-2
+      onChoiceFlag: 
+      nextEventId: 
+      endsConversation: 1
+    requiredFlags: []
+    excludedFlags: []
+    onTriggerFlag: 
+    canSkip: 1
+    eventWeight: 1
+  - eventId: event_job_opportunity
+    eventName: "\u804C\u4E1A\u673A\u9047"
+    category: 1
+    storyKey: story_job_opportunity
+    triggerProbability: 0.12
+    conditions:
+    - type: 4
+      value: 30
+      comparison: 4
+      flagName: 
+    choices:
+    - choiceId: job_take
+      choiceTextKey: choice_take_chance
+      resultTextKey: result_take_chance
+      effects:
+      - workSkill+10
+      - gold+200
+      - V+1
+      onChoiceFlag: risk_taker
+      nextEventId: 
+      endsConversation: 1
+    - choiceId: job_safe
+      choiceTextKey: choice_play_safe
+      resultTextKey: result_play_safe
+      effects:
+      - V-0.5
+      - A+0.5
+      onChoiceFlag: 
+      nextEventId: 
+      endsConversation: 1
+    requiredFlags: []
+    excludedFlags: []
+    onTriggerFlag: 
+    canSkip: 1
+    eventWeight: 1
+  - eventId: event_work_conflict
+    eventName: "\u5DE5\u4F5C\u51B2\u7A81"
+    category: 1
+    storyKey: story_work_conflict
+    triggerProbability: 0.1
+    conditions: []
+    choices:
+    - choiceId: conflict_resolve
+      choiceTextKey: choice_resolve
+      resultTextKey: result_resolve
+      effects:
+      - V+1
+      - A-1
+      onChoiceFlag: 
+      nextEventId: 
+      endsConversation: 1
+    - choiceId: conflict_ignore
+      choiceTextKey: choice_conflict_ignore
+      resultTextKey: result_conflict_ignore
+      effects:
+      - V-2
+      - A+2
+      onChoiceFlag: 
+      nextEventId: 
+      endsConversation: 1
+    requiredFlags:
+    - worked_at_bar
+    excludedFlags: []
+    onTriggerFlag: 
+    canSkip: 1
+    eventWeight: 1
+  - eventId: event_promotion
+    eventName: "\u5DE5\u4F5C\u5347\u8FC1"
+    category: 1
+    storyKey: story_promotion
+    triggerProbability: 0.08
+    conditions:
+    - type: 4
+      value: 50
+      comparison: 4
+      flagName: 
+    choices:
+    - choiceId: promo_accept
+      choiceTextKey: choice_accept_promotion
+      resultTextKey: result_accept_promotion
+      effects:
+      - workSkill+20
+      - gold+300
+      - V+2
+      - A+1
+      onChoiceFlag: got_promoted
+      nextEventId: 
+      endsConversation: 1
+    - choiceId: promo_decline
+      choiceTextKey: choice_decline_promotion
+      resultTextKey: result_decline_promotion
+      effects:
+      - V-1
+      - A+1
+      onChoiceFlag: 
+      nextEventId: 
+      endsConversation: 1
+    requiredFlags: []
+    excludedFlags: []
+    onTriggerFlag: 
+    canSkip: 1
+    eventWeight: 1
+  - eventId: event_job_loss
+    eventName: "\u5931\u4E1A\u5371\u673A"
+    category: 1
+    storyKey: story_job_loss
+    triggerProbability: 0.05
+    conditions: []
+    choices:
+    - choiceId: jobloss_find
+      choiceTextKey: choice_find_new_job
+      resultTextKey: result_find_new_job
+      effects:
+      - V-2
+      - A+2
+      - health-10
+      onChoiceFlag: job_hunting
+      nextEventId: 
+      endsConversation: 1
+    - choiceId: jobloss_break
+      choiceTextKey: choice_take_break_job
+      resultTextKey: result_take_break_job
+      effects:
+      - health+30
+      - V+1
+      - gold-100
+      onChoiceFlag: 
+      nextEventId: 
+      endsConversation: 1
+    requiredFlags: []
+    excludedFlags: []
+    onTriggerFlag: 
+    canSkip: 1
+    eventWeight: 1
+  - eventId: event_loneliness
+    eventName: "\u5B64\u72EC\u611F"
+    category: 0
+    storyKey: story_loneliness
+    triggerProbability: 0.1
+    conditions:
+    - type: 1
+      value: 0
+      comparison: 3
+      flagName: 
+    choices:
+    - choiceId: lonely_reach
+      choiceTextKey: choice_reach_out
+      resultTextKey: result_reach_out
+      effects:
+      - V+2
+      - A-1
+      onChoiceFlag: reached_out_to_friend
+      nextEventId: 
+      endsConversation: 1
+    - choiceId: lonely_withdraw
+      choiceTextKey: choice_withdraw
+      resultTextKey: result_withdraw
+      effects:
+      - V-2
+      - A-1
+      onChoiceFlag: 
+      nextEventId: 
+      endsConversation: 1
+    requiredFlags: []
+    excludedFlags: []
+    onTriggerFlag: 
+    canSkip: 1
+    eventWeight: 1
+  - eventId: event_friendship
+    eventName: "\u65B0\u7684\u53CB\u8C0A"
+    category: 0
+    storyKey: story_friendship
+    triggerProbability: 0.12
+    conditions: []
+    choices:
+    - choiceId: friend_embrace
+      choiceTextKey: choice_embrace
+      resultTextKey: result_embrace
+      effects:
+      - V+3
+      - A+1
+      - emotionStability+5
+      onChoiceFlag: made_friend
+      nextEventId: 
+      endsConversation: 1
+    - choiceId: friend_hesitate
+      choiceTextKey: choice_hesitate
+      resultTextKey: result_hesitate
+      effects:
+      - V+1
+      - A+0.5
+      onChoiceFlag: 
+      nextEventId: 
+      endsConversation: 1
+    requiredFlags: []
+    excludedFlags: []
+    onTriggerFlag: 
+    canSkip: 1
+    eventWeight: 1
+  - eventId: event_first_week
+    eventName: "\u7B2C\u4E00\u5468\u5B8C\u6210"
+    category: 3
+    storyKey: story_first_week
+    triggerProbability: 0
+    conditions: []
+    choices:
+    - choiceId: week_reflect
+      choiceTextKey: choice_reflect
+      resultTextKey: result_reflect
+      effects:
+      - V+2
+      - A-1
+      onChoiceFlag: first_week_completed
+      nextEventId: 
+      endsConversation: 1
+    requiredFlags: []
+    excludedFlags: []
+    onTriggerFlag: 
+    canSkip: 0
+    eventWeight: 1
+  - eventId: event_month_anniversary
+    eventName: "\u4E00\u4E2A\u6708\u7EAA\u5FF5"
+    category: 3
+    storyKey: story_month_anniversary
+    triggerProbability: 0
+    conditions: []
+    choices:
+    - choiceId: month_celebrate
+      choiceTextKey: choice_celebrate
+      resultTextKey: result_celebrate
+      effects:
+      - V+2
+      - gold-100
+      - health+20
+      - hunger+40
+      onChoiceFlag: first_month_completed
+      nextEventId: 
+      endsConversation: 1
+    requiredFlags:
+    - first_week_completed
+    excludedFlags: []
+    onTriggerFlag: 
+    canSkip: 1
+    eventWeight: 1
+  - eventId: event_weekend
+    eventName: "\u5468\u672B\u4F11\u95F2"
+    category: 2
+    storyKey: story_weekend
+    triggerProbability: 1
+    conditions:
+    - type: 6
+      value: 6
+      comparison: 4
+      flagName: 
+    choices:
+    - choiceId: weekend_relax
+      choiceTextKey: choice_relax
+      resultTextKey: result_relax
+      effects:
+      - health+20
+      - V+1
+      - A-1
+      - hunger-5
+      onChoiceFlag: 
+      nextEventId: 
+      endsConversation: 1
+    - choiceId: weekend_work
+      choiceTextKey: choice_work_weekend
+      resultTextKey: result_work_weekend
+      effects:
+      - gold+100
+      - health-10
+      - V-1
+      - hunger-10
+      onChoiceFlag: 
+      nextEventId: 
+      endsConversation: 1
+    requiredFlags: []
+    excludedFlags: []
+    onTriggerFlag: 
+    canSkip: 1
+    eventWeight: 1
+  - eventId: event_random_meeting
+    eventName: "\u5DE7\u9047\u67D0\u4EBA"
+    category: 2
+    storyKey: story_random_meeting
+    triggerProbability: 0.15
+    conditions: []
+    choices:
+    - choiceId: meeting_talk
+      choiceTextKey: choice_talk
+      resultTextKey: result_talk
+      effects:
+      - V+1
+      - A+0.5
+      - hunger-3
+      onChoiceFlag: 
+      nextEventId: 
+      endsConversation: 1
+    - choiceId: meeting_avoid
+      choiceTextKey: choice_avoid
+      resultTextKey: result_avoid
+      effects:
+      - V-0.5
+      - A+1
+      onChoiceFlag: 
+      nextEventId: 
+      endsConversation: 1
+    requiredFlags: []
+    excludedFlags: []
+    onTriggerFlag: 
+    canSkip: 1
+    eventWeight: 1
+  - eventId: event_serendipity
+    eventName: "\u5E78\u8FD0\u964D\u4E34"
+    category: 2
+    storyKey: story_serendipity
+    triggerProbability: 0.08
+    conditions: []
+    choices:
+    - choiceId: luck_accept
+      choiceTextKey: choice_accept_luck
+      resultTextKey: result_accept_luck
+      effects:
+      - gold+250
+      - V+2
+      onChoiceFlag: received_luck
+      nextEventId: 
+      endsConversation: 1
+    requiredFlags: []
+    excludedFlags: []
+    onTriggerFlag: 
+    canSkip: 1
+    eventWeight: 0.8
