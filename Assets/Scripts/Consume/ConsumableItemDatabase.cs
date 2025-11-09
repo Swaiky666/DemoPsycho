@@ -1,3 +1,5 @@
+// Assets/Scripts/Consume/ConsumableItemDatabase.cs
+
 using UnityEngine;
 using System.Collections.Generic;
 
@@ -21,7 +23,7 @@ public static class ConsumableItemDatabase
         items.Add(GetFoodInstant());
 
         // ===== 休息分类 (Rest) =====
-        items.Add(GetRestSleep());
+        items.Add(GetRestSleep());  // ✨ 修改后的睡觉功能
         items.Add(GetRestNap());
         items.Add(GetRestMeditation());
 
@@ -58,10 +60,6 @@ public static class ConsumableItemDatabase
 
     // ========== 食物分类 (Food) ==========
 
-    /// <summary>
-    /// 便利店食物
-    /// 便宜快手的选择
-    /// </summary>
     private static ConsumableItem GetFoodConvenience()
     {
         return new ConsumableItem(
@@ -80,10 +78,6 @@ public static class ConsumableItemDatabase
         };
     }
 
-    /// <summary>
-    /// 餐厅大餐
-    /// 贵但满足的选择
-    /// </summary>
     private static ConsumableItem GetFoodRestaurant()
     {
         return new ConsumableItem(
@@ -102,10 +96,6 @@ public static class ConsumableItemDatabase
         };
     }
 
-    /// <summary>
-    /// 速冻食品
-    /// 最便宜最快的选择
-    /// </summary>
     private static ConsumableItem GetFoodInstant()
     {
         return new ConsumableItem(
@@ -127,8 +117,8 @@ public static class ConsumableItemDatabase
     // ========== 休息分类 (Rest) ==========
 
     /// <summary>
-    /// 充分睡眠
-    /// 最有效的恢复方式
+    /// ✨ 修改后的充分睡眠 - 睡到第二天
+    /// 标记为特殊物品，需要在ConsumeSystem中特殊处理
     /// </summary>
     private static ConsumableItem GetRestSleep()
     {
@@ -137,21 +127,18 @@ public static class ConsumableItemDatabase
             nameKey: "item_rest_sleep",
             categoryType: "rest",
             costGold: 0f,
-            timeHours: 8f,
+            timeHours: -1f,  // ✨ 特殊标记：-1表示"睡到第二天"
             health: 50f,
             v: 1f,
             a: -2f,
             descKey: "desc_rest_sleep"
         )
         {
-            itemColor = new Color(0.5f, 1f, 0.5f)
+            itemColor = new Color(0.5f, 1f, 0.5f),
+            isSleepToNextDay = true  // ✨ 新增标记
         };
     }
 
-    /// <summary>
-    /// 小睡
-    /// 快速恢复
-    /// </summary>
     private static ConsumableItem GetRestNap()
     {
         return new ConsumableItem(
@@ -170,10 +157,6 @@ public static class ConsumableItemDatabase
         };
     }
 
-    /// <summary>
-    /// 冥想
-    /// 心理恢复
-    /// </summary>
     private static ConsumableItem GetRestMeditation()
     {
         return new ConsumableItem(
@@ -194,10 +177,6 @@ public static class ConsumableItemDatabase
 
     // ========== 娱乐分类 (Entertainment) ==========
 
-    /// <summary>
-    /// 看电影
-    /// 消遣但消耗时间
-    /// </summary>
     private static ConsumableItem GetEntertainmentMovie()
     {
         return new ConsumableItem(
@@ -216,10 +195,6 @@ public static class ConsumableItemDatabase
         };
     }
 
-    /// <summary>
-    /// 喝咖啡
-    /// 快速的心情提升
-    /// </summary>
     private static ConsumableItem GetEntertainmentCoffee()
     {
         return new ConsumableItem(
@@ -238,10 +213,6 @@ public static class ConsumableItemDatabase
         };
     }
 
-    /// <summary>
-    /// 玩游戏
-    /// 免费的娱乐，但伤身体
-    /// </summary>
     private static ConsumableItem GetEntertainmentGame()
     {
         return new ConsumableItem(
@@ -262,10 +233,6 @@ public static class ConsumableItemDatabase
 
     // ========== 工具分类 (Tool) ==========
 
-    /// <summary>
-    /// 自行车
-    /// 增加工作效率（暂时不实现）
-    /// </summary>
     private static ConsumableItem GetToolBicycle()
     {
         return new ConsumableItem(
@@ -284,10 +251,6 @@ public static class ConsumableItemDatabase
         };
     }
 
-    /// <summary>
-    /// 维生素
-    /// 恢复健康
-    /// </summary>
     private static ConsumableItem GetToolVitamins()
     {
         return new ConsumableItem(
@@ -308,9 +271,6 @@ public static class ConsumableItemDatabase
 
     // ========== 调试方法 ==========
 
-    /// <summary>
-    /// 打印所有物品信息
-    /// </summary>
     public static void DebugPrintAllItems()
     {
         var items = GetAllItems();
@@ -337,9 +297,6 @@ public static class ConsumableItemDatabase
         Debug.Log($"\n=====================================================\n");
     }
 
-    /// <summary>
-    /// 打印特定分类的物品
-    /// </summary>
     public static void DebugPrintCategory(string category)
     {
         var items = GetItemsByCategory(category);
