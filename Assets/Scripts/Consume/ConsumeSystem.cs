@@ -1,17 +1,21 @@
-// Assets/Scripts/Consume/ConsumeSystem.cs
-
 using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
 /// 消费系统 - 改进版
-/// ✨ 新增：支持"睡到第二天"功能
+/// ✨ 修复：
+/// 1. 睡觉和休息不再直接增加健康值
+/// 2. 饥饿值极低时的健康惩罚更严重
+/// 3. 必须通过吃东西来恢复健康
 /// </summary>
 public class ConsumeSystem : MonoBehaviour
 {
     [Header("系统参考")]
     [SerializeField] private TimeManager timeManager;
-    [SerializeField] private DailyFlowManager dailyFlowManager;  // ✨ 新增：用于触发进入下一天
+    [SerializeField] private DailyFlowManager dailyFlowManager;
+    
+    [Header("饥饿惩罚设置 ✨")]
+    [SerializeField] private float hungerHealthPenaltyRate = 2f;  // 饥饿导致的每小时健康损失倍率
     
     private AffectGameState gameState;
 
@@ -29,16 +33,10 @@ public class ConsumeSystem : MonoBehaviour
             timeManager = GetComponent<TimeManager>();
         
         Debug.Log("[ConsumeSystem] 系统已初始化");
-        
-        if (false)
-        {
-            ConsumableItemDatabase.DebugPrintAllItems();
-        }
     }
 
     /// <summary>
-    /// 使用/购买物品（主要调用接口）
-    /// ✨ 改进：支持"睡到第二天"特殊处理
+    /// ✨ 改进版：使用物品
     /// </summary>
     public void UseItem(string itemId)
     {
@@ -85,7 +83,7 @@ public class ConsumeSystem : MonoBehaviour
             gameState.res.gold -= item.cost;
         }
 
-        // 4) 应用所有效果
+        // 4) ✨ 改进：应用效果（休息类不增加健康）
         ApplyItemEffects(item, itemName);
 
         // 打印成功日志
@@ -93,7 +91,7 @@ public class ConsumeSystem : MonoBehaviour
     }
 
     /// <summary>
-    /// ✨ 新增：处理"睡到第二天"的特殊逻辑
+    /// ✨ 改进版：睡到第二天
     /// </summary>
     private void UseSleepToNextDay(ConsumableItem item, string itemName)
     {
@@ -103,27 +101,26 @@ public class ConsumeSystem : MonoBehaviour
         float remainingHours = timeManager.GetRemainTime();
         Debug.Log($"[ConsumeSystem] 当前剩余时间: {remainingHours:F1} 小时");
         
-        // 2) 根据剩余时间计算睡眠效果加成
-        // 剩余时间越多，恢复效果越好
-        float sleepQualityBonus = Mathf.Clamp(remainingHours / 8f, 0.5f, 1.5f);  // 0.5x ~ 1.5x
+        // ✨ 改进：睡眠不再直接恢复健康
+        // 只影响情绪，健康恢复必须通过吃东西
         
-        float finalHealthGain = item.healthGain * sleepQualityBonus;
+        // 2) 情绪恢复（睡眠让情绪平复）
+        float sleepQualityBonus = Mathf.Clamp(remainingHours / 8f, 0.5f, 1.5f);
         float finalVChange = item.vChange * sleepQualityBonus;
         float finalAChange = item.aChange * sleepQualityBonus;
         
         Debug.Log($"[ConsumeSystem] 睡眠质量加成: {sleepQualityBonus:F2}x");
-        Debug.Log($"[ConsumeSystem] 最终恢复效果:");
-        Debug.Log($"  • 健康: +{finalHealthGain:F1} (基础 {item.healthGain})");
-        Debug.Log($"  • 情绪V: {finalVChange:+F1} (基础 {item.vChange:+0;-0;0})");
-        Debug.Log($"  • 情绪A: {finalAChange:+F1} (基础 {item.aChange:+0;-0;0})");
+        Debug.Log($"[ConsumeSystem] 情绪恢复:");
+        Debug.Log($"  • 情绪V: {finalVChange:+F1}");
+        Debug.Log($"  • 情绪A: {finalAChange:+F1}");
         
-        // 3) 扣除金币（虽然睡觉免费，但保留这个逻辑以防以后有付费住宿）
+        // 3) 扣除金币
         if (gameState != null && item.cost > 0)
         {
             gameState.res.gold -= item.cost;
         }
         
-        // 4) 应用睡眠效果
+        // 4) 应用睡眠效果（不包括健康恢复）
         if (gameState != null)
         {
             var effects = new List<string>
@@ -131,27 +128,23 @@ public class ConsumeSystem : MonoBehaviour
                 $"V{(finalVChange > 0 ? "+" : "")}{finalVChange:F1}",
                 $"A{(finalAChange > 0 ? "+" : "")}{finalAChange:F1}"
             };
-
-            if (finalHealthGain > 0)
-                effects.Add($"health+{finalHealthGain:F0}");
-            else if (finalHealthGain < 0)
-                effects.Add($"health{finalHealthGain:F0}");
-
+            
+            // ✨ 移除健康恢复
+            
             gameState.ApplyEffect(effects);
         }
         
-        Debug.Log($"\n[ConsumeSystem] ✓ {itemName} 效果已应用");
+        Debug.Log($"\n[ConsumeSystem] ✓ {itemName} 效果已应用（情绪恢复）");
+        Debug.Log($"[ConsumeSystem] 💡 提示：想要恢复健康，需要吃东西！");
         Debug.Log($"[ConsumeSystem] 准备进入下一天...\n");
         
-        // 5) ✨ 关键：触发进入下一天
+        // 5) 触发进入下一天
         if (dailyFlowManager != null)
         {
-            // 延迟0.5秒执行，让UI有时间更新
             Invoke(nameof(TriggerNextDay), 0.5f);
         }
         else if (timeManager != null)
         {
-            // 备用方案：直接调用TimeManager
             Debug.LogWarning("[ConsumeSystem] DailyFlowManager未找到，使用备用方案");
             Invoke(nameof(TriggerNextDayFallback), 0.5f);
         }
@@ -163,9 +156,6 @@ public class ConsumeSystem : MonoBehaviour
         Debug.Log($"========================================\n");
     }
 
-    /// <summary>
-    /// 触发进入下一天（通过DailyFlowManager）
-    /// </summary>
     private void TriggerNextDay()
     {
         if (dailyFlowManager != null)
@@ -174,27 +164,23 @@ public class ConsumeSystem : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 备用方案：直接通过TimeManager进入下一天
-    /// </summary>
     private void TriggerNextDayFallback()
     {
         if (timeManager != null)
         {
-            // 强制消耗剩余时间
             float remainTime = timeManager.GetRemainTime();
             if (remainTime > 0)
             {
                 timeManager.TryConsumeTime(remainTime, "睡眠（剩余时间）");
             }
             
-            // 进入下一天
             timeManager.AdvanceToNextDay();
         }
     }
 
     /// <summary>
-    /// 应用物品效果（提取为独立方法）
+    /// ✨ 改进版：应用物品效果
+    /// 休息类物品不再增加健康，只有食物才能恢复健康
     /// </summary>
     private void ApplyItemEffects(ConsumableItem item, string itemName)
     {
@@ -206,28 +192,42 @@ public class ConsumeSystem : MonoBehaviour
                 $"A{(item.aChange > 0 ? "+" : "")}{item.aChange}"
             };
 
-            if (item.healthGain > 0)
-                effects.Add($"health+{item.healthGain:F0}");
-            else if (item.healthGain < 0)
-                effects.Add($"health{item.healthGain}");
+            // ✨ 改进：只有食物类才能恢复健康
+            if (item.category == "food")
+            {
+                if (item.healthGain > 0)
+                    effects.Add($"health+{item.healthGain:F0}");
+                else if (item.healthGain < 0)
+                    effects.Add($"health{item.healthGain}");
+            }
+            // 休息类物品不影响健康
 
+            // 恢复饥饿值
             if (item.hungerRestore > 0)
-            effects.Add($"hunger+{item.hungerRestore:F0}");
+                effects.Add($"hunger+{item.hungerRestore:F0}");
 
             gameState.ApplyEffect(effects);
         }
     }
 
-    /// <summary>
-    /// 打印成功日志（提取为独立方法）
-    /// </summary>
     private void PrintSuccessLog(ConsumableItem item, string itemName, float remainingHours)
     {
         Debug.Log($"[ConsumeSystem] ✓ {itemName} 成功使用");
         Debug.Log($"  • 花费金币: {item.cost}");
         Debug.Log($"  • 消耗时间: {item.timeRequired} 小时");
-        Debug.Log($"  • 健康变化: {item.healthGain:+0.0;-0.0;0}");
+        
+        if (item.category == "food")
+        {
+            Debug.Log($"  • 健康变化: {item.healthGain:+0.0;-0.0;0}");
+            Debug.Log($"  • 饥饿恢复: +{item.hungerRestore:F0}");
+        }
+        else
+        {
+            Debug.Log($"  • 健康变化: 无（休息不恢复健康）");
+        }
+        
         Debug.Log($"  • 情绪变化: V{item.vChange:+0.0;-0.0;0}, A{item.aChange:+0.0;-0.0;0}");
+        
         if (gameState != null)
         {
             Debug.Log($"  • 剩余金币: {gameState.res.gold:F0}");
@@ -271,7 +271,6 @@ public class ConsumeSystem : MonoBehaviour
         if (gameState != null && gameState.res.gold < item.cost) 
             return false;
 
-        // ✨ 睡到第二天的物品总是可用（不需要检查时间）
         if (item.isSleepToNextDay)
             return true;
 
@@ -293,45 +292,8 @@ public class ConsumeSystem : MonoBehaviour
                $"分类: {item.category}\n" +
                $"费用: {item.cost} 金币\n" +
                $"时间: {(item.isSleepToNextDay ? "睡到第二天" : $"{item.timeRequired} 小时")}\n" +
-               $"健康: {item.healthGain:+0.0;-0.0;0}\n" +
+               $"健康: {(item.category == "food" ? $"{item.healthGain:+0.0;-0.0;0}" : "无")}\n" +
                $"情绪: V{item.vChange:+0.0;-0.0;0}, A{item.aChange:+0.0;-0.0;0}\n" +
                $"说明: {description}";
-    }
-
-    [ContextMenu("DEBUG: 打印所有物品")]
-    public void DebugPrintAllItems()
-    {
-        ConsumableItemDatabase.DebugPrintAllItems();
-    }
-
-    [ContextMenu("DEBUG: 打印食物分类")]
-    public void DebugPrintFoodCategory()
-    {
-        ConsumableItemDatabase.DebugPrintCategory("food");
-    }
-
-    [ContextMenu("DEBUG: 打印休息分类")]
-    public void DebugPrintRestCategory()
-    {
-        ConsumableItemDatabase.DebugPrintCategory("rest");
-    }
-
-    [ContextMenu("DEBUG: 打印娱乐分类")]
-    public void DebugPrintEntertainmentCategory()
-    {
-        ConsumableItemDatabase.DebugPrintCategory("entertainment");
-    }
-
-    [ContextMenu("DEBUG: 打印工具分类")]
-    public void DebugPrintToolCategory()
-    {
-        ConsumableItemDatabase.DebugPrintCategory("tool");
-    }
-
-    [ContextMenu("DEBUG: 测试睡到第二天")]
-    public void DebugTestSleepToNextDay()
-    {
-        Debug.Log("\n[DEBUG] 开始测试睡到第二天功能...");
-        UseItem("rest_sleep");
     }
 }

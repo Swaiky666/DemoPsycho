@@ -136,33 +136,48 @@ public partial class TimeManager : MonoBehaviour
     /// ✨ 新增：应用饥饿值下降
     /// </summary>
     private void ApplyHungerDecay(float hours, string action)
+{
+    var gameState = FindObjectOfType<AffectGameState>();
+    if (gameState == null) return;
+
+    // 判断是否在睡觉
+    bool isSleeping = action.Contains("睡眠") || action.Contains("sleep") || action.Contains("休息");
+    
+    // 计算饥饿值下降
+    float hungerDecay = isSleeping 
+        ? hours * gameState.hungerDecayWhileSleeping 
+        : hours * gameState.hungerDecayPerHour;
+
+    gameState.ApplyEffect(new List<string> { $"hunger-{hungerDecay:F1}" });
+
+    Debug.Log($"[TimeManager] 饥饿值下降: -{hungerDecay:F1} (当前: {gameState.hunger:F1})");
+
+    // ✨ 改进：饥饿惩罚分级处理
+    if (gameState.hunger < gameState.hungerCriticalThreshold)
     {
-        var gameState = FindObjectOfType<AffectGameState>();
-        if (gameState == null) return;
-
-        // 判断是否在睡觉（睡眠时饥饿下降减缓）
-        bool isSleeping = action.Contains("睡眠") || action.Contains("sleep") || action.Contains("休息");
-        
-        float hungerDecay = isSleeping 
-            ? hours * gameState.hungerDecayWhileSleeping 
-            : hours * gameState.hungerDecayPerHour;
-
-        gameState.ApplyEffect(new List<string> { $"hunger-{hungerDecay:F1}" });
-
-        Debug.Log($"[TimeManager] 饥饿值下降: -{hungerDecay:F1} (当前: {gameState.hunger:F1})");
-
-        // 饥饿警告
-        if (gameState.hunger < gameState.hungerCriticalThreshold)
-        {
-            Debug.LogWarning($"⚠️ 饥饿值危险！({gameState.hunger:F1})");
-            gameState.ApplyEffect(new List<string> { "V-2", "A+1" }); // 非常饥饿影响情绪
-        }
-        else if (gameState.hunger < gameState.hungerWarningThreshold)
-        {
-            Debug.LogWarning($"⚠️ 感到饥饿 ({gameState.hunger:F1})");
-            gameState.ApplyEffect(new List<string> { "V-1" }); // 轻微饥饿影响情绪
-        }
+        // ✨ 危险饥饿：每小时损失3点健康 + 强烈情绪负面
+        float healthLoss = 3f * hours;
+        Debug.LogError($"🔴 极度饥饿！健康快速流失: -{healthLoss:F1}");
+        gameState.ApplyEffect(new List<string> 
+        { 
+            $"health-{healthLoss:F0}",  // ✨ 严重健康损失
+            "V-2",                        // 非常负面的情绪
+            "A+2"                         // 焦虑不安
+        });
     }
+    else if (gameState.hunger < gameState.hungerWarningThreshold)
+    {
+        // ✨ 警告饥饿：每小时损失1点健康 + 轻微情绪负面
+        float healthLoss = 1f * hours;
+        Debug.LogWarning($"⚠️ 感到饥饿，健康缓慢下降: -{healthLoss:F1}");
+        gameState.ApplyEffect(new List<string> 
+        { 
+            $"health-{healthLoss:F0}",  // ✨ 轻微健康损失
+            "V-1"                         // 轻微负面情绪
+        });
+    }
+}
+
 
     /// <summary>
     /// 获取当天剩余时间
