@@ -4,11 +4,11 @@ using UnityEngine.UI;
 using System.Collections;
 
 /// <summary>
-/// 事件 UI 面板 - 改进版
-/// ✨ 新增功能：
-/// 1. Inspector中可调整按钮间距
-/// 2. 按钮大小完全由Prefab控制
-/// 3. 支持连续事件显示
+/// 事件 UI 面板 - 修复版
+/// ✅ 修复：
+/// 1. 完善的 null 检查，防止 NullReferenceException
+/// 2. Awake 中增加组件验证
+/// 3. 更详细的错误日志
 /// </summary>
 public class EventUIPanel : MonoBehaviour
 {
@@ -16,11 +16,11 @@ public class EventUIPanel : MonoBehaviour
     [SerializeField] private Canvas eventCanvas;
     [SerializeField] private TextMeshProUGUI eventTitleText;
     [SerializeField] private TextMeshProUGUI storyText;
-    [SerializeField] private RectTransform choicesContainer;
+    [SerializeField] private RectTransform choicesContainer;  // ✅ 关键组件，必须在 Inspector 中设置
     [SerializeField] private Button choiceButtonPrefab;
     
     [Header("按钮布局设置 ✨")]
-    [SerializeField] private float buttonSpacing = 20f;  // ✨ 可在Inspector中调整
+    [SerializeField] private float buttonSpacing = 20f;
     [SerializeField] private bool useVerticalLayout = true;
     
     [Header("动画设置")]
@@ -42,17 +42,65 @@ public class EventUIPanel : MonoBehaviour
 
     void Awake()
     {
-        canvasGroup = eventCanvas.GetComponent<CanvasGroup>();
-        if (canvasGroup == null)
+        // ✅ 完善的组件验证
+        ValidateComponents();
+        
+        canvasGroup = eventCanvas != null ? eventCanvas.GetComponent<CanvasGroup>() : null;
+        if (canvasGroup == null && eventCanvas != null)
         {
             canvasGroup = eventCanvas.gameObject.AddComponent<CanvasGroup>();
         }
         
         // 初始隐藏
-        eventCanvas.enabled = false;
+        if (eventCanvas != null)
+        {
+            eventCanvas.enabled = false;
+        }
+    }
+
+    /// <summary>
+    /// ✅ 新增：验证必要组件
+    /// </summary>
+    private void ValidateComponents()
+    {
+        bool hasError = false;
         
-        // 设置布局组件
-        SetupLayoutGroup();
+        if (eventCanvas == null)
+        {
+            Debug.LogError("[EventUIPanel] ❌ EventCanvas 未分配！请在 Inspector 中设置！");
+            hasError = true;
+        }
+        
+        if (eventTitleText == null)
+        {
+            Debug.LogWarning("[EventUIPanel] ⚠️ EventTitleText 未分配！");
+        }
+        
+        if (storyText == null)
+        {
+            Debug.LogWarning("[EventUIPanel] ⚠️ StoryText 未分配！");
+        }
+        
+        if (choicesContainer == null)
+        {
+            Debug.LogError("[EventUIPanel] ❌ ChoicesContainer 未分配！这是必需的组件！");
+            hasError = true;
+        }
+        
+        if (choiceButtonPrefab == null)
+        {
+            Debug.LogError("[EventUIPanel] ❌ ChoiceButtonPrefab 未分配！");
+            hasError = true;
+        }
+        
+        if (hasError)
+        {
+            Debug.LogError("[EventUIPanel] ❌❌❌ 存在未分配的必要组件，事件系统可能无法正常工作！");
+        }
+        else
+        {
+            Debug.Log("[EventUIPanel] ✅ 所有必要组件已验证通过");
+        }
     }
 
     void Start()
@@ -64,11 +112,17 @@ public class EventUIPanel : MonoBehaviour
     }
 
     /// <summary>
-    /// ✨ 设置布局组件
+    /// ✅ 改进版：设置布局组件，完善空值检查
     /// </summary>
     private void SetupLayoutGroup()
     {
-        if (choicesContainer == null) return;
+        // ✅ 关键修复：完善的空值检查
+        if (choicesContainer == null)
+        {
+            Debug.LogError("[EventUIPanel] ❌ choicesContainer 为 null！无法设置布局！");
+            Debug.LogError("[EventUIPanel] 💡 解决方案：在 Inspector 中找到 EventUIPanel 组件，设置 ChoicesContainer 引用");
+            return;
+        }
         
         // 移除旧的布局组件
         var oldVertical = choicesContainer.GetComponent<VerticalLayoutGroup>();
@@ -81,8 +135,8 @@ public class EventUIPanel : MonoBehaviour
             verticalLayout = choicesContainer.gameObject.AddComponent<VerticalLayoutGroup>();
             verticalLayout.spacing = buttonSpacing;
             verticalLayout.childAlignment = TextAnchor.MiddleCenter;
-            verticalLayout.childControlWidth = false;  // ✨ 不控制按钮宽度
-            verticalLayout.childControlHeight = false;  // ✨ 不控制按钮高度
+            verticalLayout.childControlWidth = false;
+            verticalLayout.childControlHeight = false;
             verticalLayout.childForceExpandWidth = false;
             verticalLayout.childForceExpandHeight = false;
         }
@@ -99,7 +153,7 @@ public class EventUIPanel : MonoBehaviour
         
         if (debugMode)
         {
-            Debug.Log($"[EventUIPanel] 布局设置完成: {(useVerticalLayout ? "垂直" : "水平")}, 间距: {buttonSpacing}");
+            Debug.Log($"[EventUIPanel] ✅ 布局设置完成: {(useVerticalLayout ? "垂直" : "水平")}, 间距: {buttonSpacing}");
         }
     }
 
@@ -110,7 +164,20 @@ public class EventUIPanel : MonoBehaviour
     {
         if (isDisplaying)
         {
-            Debug.LogWarning("[EventUIPanel] 已有事件在显示");
+            Debug.LogWarning("[EventUIPanel] ⚠️ 已有事件在显示");
+            return;
+        }
+        
+        // ✅ 额外的安全检查
+        if (eventData == null)
+        {
+            Debug.LogError("[EventUIPanel] ❌ eventData 为 null！");
+            return;
+        }
+        
+        if (choicesContainer == null)
+        {
+            Debug.LogError("[EventUIPanel] ❌ choicesContainer 为 null，无法显示事件！");
             return;
         }
         
@@ -121,8 +188,14 @@ public class EventUIPanel : MonoBehaviour
     private IEnumerator ShowEventCoroutine(EventData eventData)
     {
         // 1. 激活 Canvas
-        eventCanvas.enabled = true;
-        canvasGroup.alpha = 0f;
+        if (eventCanvas != null)
+        {
+            eventCanvas.enabled = true;
+            if (canvasGroup != null)
+            {
+                canvasGroup.alpha = 0f;
+            }
+        }
         
         // 2. 设置标题
         if (eventTitleText != null)
@@ -131,7 +204,7 @@ public class EventUIPanel : MonoBehaviour
         }
         
         // 3. 设置故事文本
-        if (storyText != null)
+        if (storyText != null && storyProvider != null)
         {
             string storyContent = storyProvider.GetStory(eventData);
             storyText.text = storyContent;
@@ -147,18 +220,21 @@ public class EventUIPanel : MonoBehaviour
         CreateChoiceButtons(eventData);
         
         // 7. 淡入动画
-        float timer = 0f;
-        while (timer < fadeInDuration)
+        if (canvasGroup != null)
         {
-            timer += Time.deltaTime;
-            canvasGroup.alpha = Mathf.Lerp(0f, 1f, timer / fadeInDuration);
-            yield return null;
+            float timer = 0f;
+            while (timer < fadeInDuration)
+            {
+                timer += Time.deltaTime;
+                canvasGroup.alpha = Mathf.Lerp(0f, 1f, timer / fadeInDuration);
+                yield return null;
+            }
+            canvasGroup.alpha = 1f;
         }
-        canvasGroup.alpha = 1f;
         
         if (debugMode)
         {
-            Debug.Log("[EventUIPanel] 事件显示完成");
+            Debug.Log("[EventUIPanel] ✅ 事件显示完成");
         }
     }
 
@@ -169,7 +245,19 @@ public class EventUIPanel : MonoBehaviour
     {
         if (choiceButtonPrefab == null)
         {
-            Debug.LogError("[EventUIPanel] 选择按钮 Prefab 未指定");
+            Debug.LogError("[EventUIPanel] ❌ 选择按钮 Prefab 未指定");
+            return;
+        }
+        
+        if (choicesContainer == null)
+        {
+            Debug.LogError("[EventUIPanel] ❌ choicesContainer 为 null，无法创建按钮");
+            return;
+        }
+        
+        if (eventData.choices == null || eventData.choices.Length == 0)
+        {
+            Debug.LogWarning("[EventUIPanel] ⚠️ 事件没有选择项");
             return;
         }
         
@@ -183,11 +271,9 @@ public class EventUIPanel : MonoBehaviour
             var buttonObj = Instantiate(choiceButtonPrefab, choicesContainer);
             var button = buttonObj.GetComponent<Button>();
             
-            // ✨ 不修改按钮大小，完全由Prefab决定
-            
             // 设置按钮文本
             var buttonText = button.GetComponentInChildren<TextMeshProUGUI>();
-            if (buttonText != null)
+            if (buttonText != null && storyProvider != null)
             {
                 buttonText.text = storyProvider.GetChoiceText(choice);
             }
@@ -203,13 +289,16 @@ public class EventUIPanel : MonoBehaviour
         }
         
         // 强制刷新布局
-        if (useVerticalLayout && verticalLayout != null)
+        if (choicesContainer != null)
         {
-            LayoutRebuilder.ForceRebuildLayoutImmediate(choicesContainer);
-        }
-        else if (!useVerticalLayout && horizontalLayout != null)
-        {
-            LayoutRebuilder.ForceRebuildLayoutImmediate(choicesContainer);
+            if (useVerticalLayout && verticalLayout != null)
+            {
+                LayoutRebuilder.ForceRebuildLayoutImmediate(choicesContainer);
+            }
+            else if (!useVerticalLayout && horizontalLayout != null)
+            {
+                LayoutRebuilder.ForceRebuildLayoutImmediate(choicesContainer);
+            }
         }
     }
 
@@ -262,21 +351,28 @@ public class EventUIPanel : MonoBehaviour
     private IEnumerator HideEventCoroutine()
     {
         // 淡出动画
-        float timer = 0f;
-        while (timer < fadeInDuration)
+        if (canvasGroup != null)
         {
-            timer += Time.deltaTime;
-            canvasGroup.alpha = Mathf.Lerp(1f, 0f, timer / fadeInDuration);
-            yield return null;
+            float timer = 0f;
+            while (timer < fadeInDuration)
+            {
+                timer += Time.deltaTime;
+                canvasGroup.alpha = Mathf.Lerp(1f, 0f, timer / fadeInDuration);
+                yield return null;
+            }
+            canvasGroup.alpha = 0f;
         }
         
-        canvasGroup.alpha = 0f;
-        eventCanvas.enabled = false;
+        if (eventCanvas != null)
+        {
+            eventCanvas.enabled = false;
+        }
+        
         isDisplaying = false;
         
         if (debugMode)
         {
-            Debug.Log("[EventUIPanel] 事件已隐藏");
+            Debug.Log("[EventUIPanel] ✅ 事件已隐藏");
         }
     }
 
@@ -342,16 +438,29 @@ public class EventUIPanel : MonoBehaviour
                     choiceId = "test_choice_2",
                     choiceTextKey = "choice_overwork_continue",
                     effects = new string[] { "V-1" }
-                },
-                new EventChoice
-                {
-                    choiceId = "test_choice_3",
-                    choiceTextKey = "choice_overwork_rest",
-                    effects = new string[] { "health+10" }
                 }
             }
         };
         
         ShowEvent(testEvent);
+    }
+    
+    /// <summary>
+    /// 快速调试：验证组件状态
+    /// </summary>
+    [ContextMenu("DEBUG: 验证组件状态")]
+    public void DebugValidateState()
+    {
+        Debug.Log("\n========== EventUIPanel 组件状态 ==========");
+        Debug.Log($"EventCanvas: {(eventCanvas != null ? "✅" : "❌")}");
+        Debug.Log($"EventTitleText: {(eventTitleText != null ? "✅" : "❌")}");
+        Debug.Log($"StoryText: {(storyText != null ? "✅" : "❌")}");
+        Debug.Log($"ChoicesContainer: {(choicesContainer != null ? "✅" : "❌")}");
+        Debug.Log($"ChoiceButtonPrefab: {(choiceButtonPrefab != null ? "✅" : "❌")}");
+        Debug.Log($"CanvasGroup: {(canvasGroup != null ? "✅" : "❌")}");
+        Debug.Log($"EventManager: {(eventManager != null ? "✅" : "❌")}");
+        Debug.Log($"StoryProvider: {(storyProvider != null ? "✅" : "❌")}");
+        Debug.Log($"IsDisplaying: {isDisplaying}");
+        Debug.Log("=========================================\n");
     }
 }

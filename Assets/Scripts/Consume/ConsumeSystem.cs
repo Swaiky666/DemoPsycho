@@ -7,6 +7,7 @@ using System.Collections.Generic;
 /// 1. 睡觉和休息不再直接增加健康值
 /// 2. 饥饿值极低时的健康惩罚更严重
 /// 3. 必须通过吃东西来恢复健康
+/// 4. 修复 A0 格式化问题
 /// </summary>
 public class ConsumeSystem : MonoBehaviour
 {
@@ -123,15 +124,23 @@ public class ConsumeSystem : MonoBehaviour
         // 4) 应用睡眠效果（不包括健康恢复）
         if (gameState != null)
         {
-            var effects = new List<string>
+            var effects = new List<string>();
+            
+            // ✨ 修复：正确格式化 V 和 A 效果
+            if (Mathf.Abs(finalVChange) > 0.01f)  // 避免浮点数精度问题
             {
-                $"V{(finalVChange > 0 ? "+" : "")}{finalVChange:F1}",
-                $"A{(finalAChange > 0 ? "+" : "")}{finalAChange:F1}"
-            };
+                effects.Add($"V{(finalVChange >= 0 ? "+" : "")}{finalVChange:F1}");
+            }
             
-            // ✨ 移除健康恢复
+            if (Mathf.Abs(finalAChange) > 0.01f)  // 避免浮点数精度问题
+            {
+                effects.Add($"A{(finalAChange >= 0 ? "+" : "")}{finalAChange:F1}");
+            }
             
-            gameState.ApplyEffect(effects);
+            if (effects.Count > 0)
+            {
+                gameState.ApplyEffect(effects);
+            }
         }
         
         Debug.Log($"\n[ConsumeSystem] ✓ {itemName} 效果已应用（情绪恢复）");
@@ -181,32 +190,46 @@ public class ConsumeSystem : MonoBehaviour
     /// <summary>
     /// ✨ 改进版：应用物品效果
     /// 休息类物品不再增加健康，只有食物才能恢复健康
+    /// 修复：正确格式化效果字符串，避免 "A0" 问题
     /// </summary>
     private void ApplyItemEffects(ConsumableItem item, string itemName)
     {
         if (gameState != null)
         {
-            var effects = new List<string>
+            var effects = new List<string>();
+
+            // ✨ 修复：正确格式化 V 效果
+            if (Mathf.Abs(item.vChange) > 0.01f)  // 避免浮点数精度问题
             {
-                $"V{(item.vChange > 0 ? "+" : "")}{item.vChange}",
-                $"A{(item.aChange > 0 ? "+" : "")}{item.aChange}"
-            };
+                effects.Add($"V{(item.vChange >= 0 ? "+" : "")}{item.vChange:F1}");
+            }
+
+            // ✨ 修复：正确格式化 A 效果
+            if (Mathf.Abs(item.aChange) > 0.01f)  // 避免浮点数精度问题
+            {
+                effects.Add($"A{(item.aChange >= 0 ? "+" : "")}{item.aChange:F1}");
+            }
 
             // ✨ 改进：只有食物类才能恢复健康
             if (item.category == "food")
             {
-                if (item.healthGain > 0)
-                    effects.Add($"health+{item.healthGain:F0}");
-                else if (item.healthGain < 0)
-                    effects.Add($"health{item.healthGain}");
+                if (Mathf.Abs(item.healthGain) > 0.01f)
+                {
+                    effects.Add($"health{(item.healthGain >= 0 ? "+" : "")}{item.healthGain:F0}");
+                }
             }
             // 休息类物品不影响健康
 
             // 恢复饥饿值
             if (item.hungerRestore > 0)
+            {
                 effects.Add($"hunger+{item.hungerRestore:F0}");
+            }
 
-            gameState.ApplyEffect(effects);
+            if (effects.Count > 0)
+            {
+                gameState.ApplyEffect(effects);
+            }
         }
     }
 
