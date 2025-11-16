@@ -1,15 +1,22 @@
 using UnityEditor;
 using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
 
 /// <summary>
-/// 本地化设置编辑器 - 包含事件故事和选项
-/// 在原有的基础上添加所有事件相关的 Key
+/// 完整版本地化编辑器 - 追加模式
+/// 包含所有原有Key + 新的事件故事Key
+/// 只添加不存在的Key，保留所有原有Key
+/// 
+/// 使用方法:
+/// 1. 菜单 → Tools → Localization → Setup Complete Localization
+/// 2. 自动添加所有缺少的Key
+/// 3. 完成！
 /// </summary>
-public class LocalizationSetupEditor
+public class LocalizationCompleteEditor
 {
-    [MenuItem("Tools/Localization/Setup All Keys")]
-    public static void SetupAllKeys()
+    [MenuItem("Tools/Localization/Setup Complete Localization")]
+    public static void SetupCompleteLocalization()
     {
         LocalizationConfig config = Resources.Load<LocalizationConfig>("LocalizationConfig");
         
@@ -33,7 +40,21 @@ public class LocalizationSetupEditor
             return;
         }
 
-        var allStrings = CreateAllLocalizedStrings();
+        // 获取现有的所有 Key
+        var existingKeys = new HashSet<string>(config.strings.Select(s => s.key));
+        
+        int beforeCount = config.strings.Length;
+        
+        // 生成所有Key（包括原有的和新的）
+        var allKeys = CreateAllLocalizationKeys();
+        
+        // 过滤掉已存在的Key
+        var keysToAdd = allKeys.Where(k => !existingKeys.Contains(k.key)).ToList();
+        
+        // 将新Key添加到现有列表
+        var allStrings = new List<LocalizationConfig.LocalizedString>(config.strings);
+        allStrings.AddRange(keysToAdd);
+        
         config.strings = allStrings.ToArray();
         config.Initialize();
 
@@ -42,41 +63,139 @@ public class LocalizationSetupEditor
         AssetDatabase.Refresh();
 
         EditorUtility.DisplayDialog("成功", 
-            $"已添加 {allStrings.Count} 个本地化 Key 到 LocalizationConfig", 
+            $"本地化设置完成！\n\n" +
+            $"原有 Key 数: {beforeCount}\n" +
+            $"新增 Key 数: {keysToAdd.Count}\n" +
+            $"总 Key 数: {config.strings.Length}", 
             "确定");
 
-        Debug.Log($"[LocalizationSetup] 成功添加 {allStrings.Count} 个 Key");
+        Debug.Log($"[LocalizationSetup] 成功添加 {keysToAdd.Count} 个 Key，总数: {config.strings.Length}");
     }
 
-    private static List<LocalizationConfig.LocalizedString> CreateAllLocalizedStrings()
+    /// <summary>
+    /// 生成所有本地化Key（原有的 + 事件的）
+    /// </summary>
+    private static List<LocalizationConfig.LocalizedString> CreateAllLocalizationKeys()
     {
         var strings = new List<LocalizationConfig.LocalizedString>();
 
-        // ===== 基础属性 =====
+        // ===== 原有的基础Key (保留所有) =====
+        
+        // 基础属性 (5 个)
         strings.Add(new LocalizationConfig.LocalizedString { key = "health", chinese = "健康", english = "Health" });
         strings.Add(new LocalizationConfig.LocalizedString { key = "gold", chinese = "金币", english = "Gold" });
         strings.Add(new LocalizationConfig.LocalizedString { key = "skill", chinese = "技能", english = "Skill" });
         strings.Add(new LocalizationConfig.LocalizedString { key = "valence", chinese = "情绪V", english = "Emotion V" });
         strings.Add(new LocalizationConfig.LocalizedString { key = "arousal", chinese = "情绪A", english = "Emotion A" });
 
-        // ===== 时间系统 =====
+        // 时间系统 - 周期
+        strings.Add(new LocalizationConfig.LocalizedString { key = "week", chinese = "周", english = "Week" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "day", chinese = "天", english = "Day" });
+
+        // 时间系统 - 时段名称 (4 个)
         strings.Add(new LocalizationConfig.LocalizedString { key = "morning", chinese = "早上", english = "Morning" });
         strings.Add(new LocalizationConfig.LocalizedString { key = "noon", chinese = "中午", english = "Noon" });
         strings.Add(new LocalizationConfig.LocalizedString { key = "afternoon", chinese = "下午", english = "Afternoon" });
         strings.Add(new LocalizationConfig.LocalizedString { key = "night", chinese = "晚上", english = "Night" });
 
-        // ===== 工作系统 =====
+        // 时间系统 - UI 标签
+        strings.Add(new LocalizationConfig.LocalizedString { key = "time_slot", chinese = "时间段", english = "Time Slot" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "progress", chinese = "进度", english = "Progress" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "remaining", chinese = "剩余", english = "Remaining" });
+
+        // 工作系统 - 工作名称
         strings.Add(new LocalizationConfig.LocalizedString { key = "job_job_delivery", chinese = "送快递", english = "Delivery" });
         strings.Add(new LocalizationConfig.LocalizedString { key = "job_job_restaurant", chinese = "餐厅端盘子", english = "Restaurant" });
         strings.Add(new LocalizationConfig.LocalizedString { key = "job_job_leaflet", chinese = "发传单", english = "Leaflet" });
         strings.Add(new LocalizationConfig.LocalizedString { key = "job_job_bar", chinese = "酒馆帮工", english = "Bar Work" });
 
-        // ===== 消费物品 =====
-        strings.Add(new LocalizationConfig.LocalizedString { key = "item_food_convenience", chinese = "便利店便当", english = "Convenience Store Bento" });
-        strings.Add(new LocalizationConfig.LocalizedString { key = "item_rest_sleep", chinese = "充足睡眠", english = "Full Sleep" });
+        // 工作系统 - 工作描述
+        strings.Add(new LocalizationConfig.LocalizedString { key = "job_desc_job_delivery", chinese = "骑车送快递，体力活。获得丰厚报酬。", english = "Deliver packages by bike. Good payment." });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "job_desc_job_restaurant", chinese = "在餐厅端盘子，需要一定技能。", english = "Wait tables at restaurant. Requires skill." });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "job_desc_job_leaflet", chinese = "在街头发放传单，轻松工作。", english = "Distribute leaflets. Light work." });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "job_desc_job_bar", chinese = "在酒馆帮工，需要较高的技能。", english = "Work at bar. Requires high skill." });
 
-        // ===== ✨ 事件故事文本 =====
-        
+        // 工作系统 - 卡牌标签
+        strings.Add(new LocalizationConfig.LocalizedString { key = "skill_required", chinese = "技能要求", english = "Skill Required" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "pay", chinese = "薪资", english = "Pay" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "job_description", chinese = "工作描述", english = "Job Description" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "available", chinese = "可用", english = "Available" });
+
+        // UI 按钮标签
+        strings.Add(new LocalizationConfig.LocalizedString { key = "close", chinese = "关闭", english = "Close" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "confirm", chinese = "确认", english = "Confirm" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "cancel", chinese = "取消", english = "Cancel" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "back", chinese = "返回", english = "Back" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "next", chinese = "下一个", english = "Next" });
+
+        // 游戏状态标签
+        strings.Add(new LocalizationConfig.LocalizedString { key = "game_start", chinese = "游戏开始", english = "Game Start" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "game_end", chinese = "游戏结束", english = "Game End" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "game_over", chinese = "游戏结束", english = "Game Over" });
+
+        // 系统消息
+        strings.Add(new LocalizationConfig.LocalizedString { key = "loading", chinese = "加载中", english = "Loading" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "error", chinese = "错误", english = "Error" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "success", chinese = "成功", english = "Success" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "warning", chinese = "警告", english = "Warning" });
+
+        // 通用词汇
+        strings.Add(new LocalizationConfig.LocalizedString { key = "name", chinese = "名称", english = "Name" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "description", chinese = "描述", english = "Description" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "time", chinese = "时间", english = "Time" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "status", chinese = "状态", english = "Status" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "level", chinese = "等级", english = "Level" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "experience", chinese = "经验", english = "Experience" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "requirement", chinese = "需求", english = "Requirement" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "reward", chinese = "奖励", english = "Reward" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "cost", chinese = "花费", english = "Cost" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "value", chinese = "数值", english = "Value" });
+
+        // 消费系统 - 卡牌标签
+        strings.Add(new LocalizationConfig.LocalizedString { key = "time_required", chinese = "消耗时间", english = "Time Required" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "health_change", chinese = "健康变化", english = "Health Change" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "category", chinese = "分类", english = "Category" });
+
+        // 消费物品分类
+        strings.Add(new LocalizationConfig.LocalizedString { key = "category_food", chinese = "食物", english = "Food" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "category_rest", chinese = "休息", english = "Rest" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "category_entertainment", chinese = "娱乐", english = "Entertainment" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "category_tool", chinese = "工具", english = "Tool" });
+
+        // 消费物品名称
+        strings.Add(new LocalizationConfig.LocalizedString { key = "item_food_convenience", chinese = "便利店便当", english = "Convenience Store Bento" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "item_food_restaurant", chinese = "餐厅大餐", english = "Restaurant Meal" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "item_food_instant", chinese = "速冻面", english = "Instant Noodles" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "item_rest_sleep", chinese = "充足睡眠", english = "Full Sleep" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "item_rest_nap", chinese = "小憩", english = "Power Nap" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "item_rest_meditation", chinese = "冥想", english = "Meditation" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "item_ent_movie", chinese = "看电影", english = "Watch Movie" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "item_ent_coffee", chinese = "咖啡馆闲逛", english = "Coffee Shop" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "item_ent_game", chinese = "玩游戏", english = "Play Game" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "item_tool_bicycle", chinese = "购买自行车", english = "Buy Bicycle" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "item_tool_vitamins", chinese = "购买维生素", english = "Buy Vitamins" });
+
+        // 物品描述
+        strings.Add(new LocalizationConfig.LocalizedString { key = "desc_food_convenience", chinese = "简单填饱肚子", english = "Quick and filling" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "desc_food_restaurant", chinese = "高质量的餐厅用餐体验", english = "Quality dining experience" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "desc_food_instant", chinese = "快速充饥但营养不足", english = "Fast but nutritious" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "desc_rest_sleep", chinese = "恢复精神", english = "Restore spirit" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "desc_rest_nap", chinese = "快速恢复", english = "Quick recovery" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "desc_rest_meditation", chinese = "心灵放松", english = "Mental relaxation" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "desc_ent_movie", chinese = "放松身心", english = "Relax yourself" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "desc_ent_coffee", chinese = "舒适的环境", english = "Comfortable place" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "desc_ent_game", chinese = "尽情娱乐", english = "Pure entertainment" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "desc_tool_bicycle", chinese = "增加移动效率", english = "Increase efficiency" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "desc_tool_vitamins", chinese = "补充营养", english = "Boost health" });
+
+        // 情绪标签
+        strings.Add(new LocalizationConfig.LocalizedString { key = "emotion_happy", chinese = "愉快", english = "Happy" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "emotion_sad", chinese = "悲伤", english = "Sad" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "emotion_excited", chinese = "兴奋", english = "Excited" });
+        strings.Add(new LocalizationConfig.LocalizedString { key = "emotion_unhappy", chinese = "不愉快", english = "Unhappy" });
+
+        // ===== 新增：事件故事Key =====
+
         // 过劳事件
         strings.Add(new LocalizationConfig.LocalizedString { key = "story_overwork", chinese = "你感到浑身疲惫，眼睛酸涩，身体沉重得无法做任何事情。\n一个声音在告诉你，也许是时候休息一下了...", english = "You feel exhausted all over, with sore eyes and a heavy body. A voice tells you maybe it's time to rest..." });
         strings.Add(new LocalizationConfig.LocalizedString { key = "choice_overwork_rest", chinese = "好吧，今天就好好休息吧", english = "Okay, let me rest today" });
@@ -212,5 +331,55 @@ public class LocalizationSetupEditor
         strings.Add(new LocalizationConfig.LocalizedString { key = "result_resist_change", chinese = "也许现在还不是改变的时候。", english = "Maybe now is not the time for change." });
 
         return strings;
+    }
+
+    [MenuItem("Tools/Localization/Check Duplicate Keys")]
+    public static void CheckDuplicateKeys()
+    {
+        LocalizationConfig config = Resources.Load<LocalizationConfig>("LocalizationConfig");
+
+        if (config == null)
+        {
+            string[] guids = AssetDatabase.FindAssets("LocalizationConfig t:LocalizationConfig");
+            if (guids.Length > 0)
+            {
+                string configPath = AssetDatabase.GUIDToAssetPath(guids[0]);
+                config = AssetDatabase.LoadAssetAtPath<LocalizationConfig>(configPath);
+            }
+        }
+
+        if (config == null)
+        {
+            EditorUtility.DisplayDialog("错误", "找不到 LocalizationConfig", "确定");
+            return;
+        }
+
+        var keySet = new HashSet<string>();
+        var duplicates = new List<string>();
+
+        foreach (var str in config.strings)
+        {
+            if (string.IsNullOrEmpty(str.key)) continue;
+
+            if (keySet.Contains(str.key))
+            {
+                if (!duplicates.Contains(str.key))
+                    duplicates.Add(str.key);
+            }
+            else
+            {
+                keySet.Add(str.key);
+            }
+        }
+
+        if (duplicates.Count > 0)
+        {
+            string dupList = string.Join("\n", duplicates);
+            EditorUtility.DisplayDialog("警告", $"发现 {duplicates.Count} 个重复 Key:\n\n{dupList}", "确定");
+        }
+        else
+        {
+            EditorUtility.DisplayDialog("检查完成", $"✓ 无重复 Key\n总 Key 数: {config.strings.Length}", "确定");
+        }
     }
 }
