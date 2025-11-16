@@ -4,19 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// 事件管理系统核心 - 改进版
-/// 
-/// ✅ 修复：
-/// 1. 在 Inspector 中可调整每日事件触发概率
-/// 2. 更详细的触发日志
-/// 3. 支持强制触发测试事件
-/// 
-/// 职责：
-/// 1. 加载事件数据库
-/// 2. 处理事件触发（概率、条件、标志）
-/// 3. 管理事件显示和选择
-/// 4. 应用事件效果
-/// 5. 与其他系统整合
+/// 事件管理系统核心 - 书本显示版
+/// 使用BookEventDisplay替代EventUIPanel
 /// </summary>
 public class EventManager : MonoBehaviour
 {
@@ -31,16 +20,16 @@ public class EventManager : MonoBehaviour
     [Header("故事提供者")]
     [SerializeField] private EventStoryProvider storyProvider;
     
-    [Header("UI 引用")]
-    [SerializeField] private EventUIPanel eventUIPanel;
+    [Header("UI 引用 - 书本显示")]
+    [SerializeField] private BookEventDisplay bookEventDisplay;
     
-    [Header("✨ 触发概率设置（可在 Inspector 中调整）")]
-    [SerializeField] [Range(0f, 1f)] private float dailyEventTriggerProbability = 0.3f;  // ✨ 每日事件触发概率（默认 30%）
-    [SerializeField] [Range(1, 5)] private int maxEventsPerDay = 1;  // ✨ 每天最多触发几个事件
+    [Header("✨ 触发概率设置")]
+    [SerializeField] [Range(0f, 1f)] private float dailyEventTriggerProbability = 0.3f;
+    [SerializeField] [Range(1, 5)] private int maxEventsPerDay = 1;
     
     [Header("调试模式")]
     [SerializeField] private bool debugMode = true;
-    [SerializeField] private bool alwaysTriggerEvents = false;  // ✨ 测试模式：总是触发事件
+    [SerializeField] private bool alwaysTriggerEvents = false;
 
     // 当前事件
     private EventData currentEvent;
@@ -80,7 +69,7 @@ public class EventManager : MonoBehaviour
         if (gameState == null) gameState = FindObjectOfType<AffectGameState>();
         if (timeManager == null) timeManager = FindObjectOfType<TimeManager>();
         if (flagManager == null) flagManager = FindObjectOfType<GameFlagManager>();
-        if (eventUIPanel == null) eventUIPanel = FindObjectOfType<EventUIPanel>();
+        if (bookEventDisplay == null) bookEventDisplay = FindObjectOfType<BookEventDisplay>();
         
         // 加载事件数据库
         if (eventDatabase == null)
@@ -88,7 +77,6 @@ public class EventManager : MonoBehaviour
             eventDatabase = Resources.Load<EventDatabase>("Events/EventDatabase");
             if (eventDatabase == null)
             {
-                // 尝试查找项目中的 EventDatabase
                 eventDatabase = FindObjectOfType<EventDatabase>();
             }
         }
@@ -134,7 +122,7 @@ public class EventManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 每天的回调 - 每天重置事件计数
+    /// 每天的回调
     /// </summary>
     private void OnDayChanged()
     {
@@ -145,27 +133,23 @@ public class EventManager : MonoBehaviour
             Debug.Log($"[EventManager] 🌅 新的一天开始，事件计数已重置");
         }
         
-        // 尝试触发每日随机事件
         TryTriggerDailyEvent();
     }
 
     /// <summary>
-    /// ✅ 改进版：尝试触发每日随机事件
-    /// 现在可以在 Inspector 中调整触发概率
+    /// 尝试触发每日随机事件
     /// </summary>
     private void TryTriggerDailyEvent()
     {
-        // 检查是否达到每日上限
         if (eventsTriggeredToday >= maxEventsPerDay)
         {
             if (debugMode)
             {
-                Debug.Log($"[EventManager] ⏹️ 今日事件已达上限 ({maxEventsPerDay})，不再触发新事件");
+                Debug.Log($"[EventManager] ⏹️ 今日事件已达上限 ({maxEventsPerDay})");
             }
             return;
         }
         
-        // ✅ 修复：使用 Inspector 中设置的概率
         float randomValue = UnityEngine.Random.Range(0f, 1f);
         
         if (debugMode)
@@ -176,7 +160,6 @@ public class EventManager : MonoBehaviour
             Debug.Log($"  • 今日已触发: {eventsTriggeredToday}/{maxEventsPerDay}");
         }
         
-        // ✅ 测试模式：总是触发
         if (alwaysTriggerEvents)
         {
             Debug.Log($"[EventManager] 🔧 测试模式：强制触发事件");
@@ -185,12 +168,11 @@ public class EventManager : MonoBehaviour
         {
             if (debugMode)
             {
-                Debug.Log($"[EventManager] ❌ 今日没有触发随机事件 ({randomValue:F3} > {dailyEventTriggerProbability:F3})");
+                Debug.Log($"[EventManager] ❌ 今日没有触发随机事件");
             }
             return;
         }
         
-        // 选择一个随机事件
         var randomEvent = SelectRandomEvent();
         
         if (randomEvent != null && CheckAllConditions(randomEvent))
@@ -205,14 +187,13 @@ public class EventManager : MonoBehaviour
         {
             if (debugMode)
             {
-                Debug.Log($"[EventManager] ⚠️ 没有满足条件的事件可以触发");
+                Debug.Log($"[EventManager] ⚠️ 没有满足条件的事件");
             }
         }
     }
 
     /// <summary>
-    /// 从可用事件中选择一个随机事件
-    /// 考虑权重和触发条件
+    /// 选择随机事件
     /// </summary>
     private EventData SelectRandomEvent()
     {
@@ -222,7 +203,6 @@ public class EventManager : MonoBehaviour
             return null;
         }
         
-        // 筛选满足条件的事件
         var validEvents = eventDatabase.events
             .Where(e => 
                 (e.category == EventCategory.Random || e.category == EventCategory.Personal) &&
@@ -240,14 +220,9 @@ public class EventManager : MonoBehaviour
         
         if (debugMode)
         {
-            Debug.Log($"[EventManager] 📋 找到 {validEvents.Count} 个满足条件的事件：");
-            foreach (var evt in validEvents)
-            {
-                Debug.Log($"  • {evt.eventName} (权重: {evt.eventWeight})");
-            }
+            Debug.Log($"[EventManager] 📋 找到 {validEvents.Count} 个满足条件的事件");
         }
         
-        // 基于权重随机选择
         float totalWeight = validEvents.Sum(e => e.eventWeight);
         float randomValue = UnityEngine.Random.Range(0f, totalWeight);
         
@@ -269,7 +244,7 @@ public class EventManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 检查所有条件是否满足（AND 逻辑）
+    /// 检查所有条件
     /// </summary>
     private bool CheckAllConditions(EventData eventData)
     {
@@ -296,14 +271,12 @@ public class EventManager : MonoBehaviour
     /// </summary>
     private bool CheckFlagRequirements(EventData eventData)
     {
-        // 检查必需标志
         if (eventData.requiredFlags != null && eventData.requiredFlags.Length > 0)
         {
             if (!flagManager.HasAllFlags(eventData.requiredFlags))
                 return false;
         }
         
-        // 检查互斥标志
         if (eventData.excludedFlags != null && eventData.excludedFlags.Length > 0)
         {
             if (flagManager.HasAnyFlag(eventData.excludedFlags))
@@ -341,13 +314,13 @@ public class EventManager : MonoBehaviour
     {
         if (isEventActive)
         {
-            Debug.LogWarning("[EventManager] ⚠️ 已有事件在进行中，无法触发新事件");
+            Debug.LogWarning("[EventManager] ⚠️ 已有事件在进行中");
             return false;
         }
         
-        if (eventUIPanel == null)
+        if (bookEventDisplay == null)
         {
-            Debug.LogError("[EventManager] ❌ EventUIPanel 未分配！");
+            Debug.LogError("[EventManager] ❌ BookEventDisplay 未分配！");
             return false;
         }
         
@@ -370,8 +343,8 @@ public class EventManager : MonoBehaviour
         // 广播事件
         OnEventTriggered?.Invoke(eventData);
         
-        // 显示事件 UI
-        eventUIPanel.ShowEvent(eventData);
+        // 显示事件在书本上
+        bookEventDisplay.ShowEvent(eventData);
         
         if (debugMode)
         {
@@ -446,7 +419,7 @@ public class EventManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 应用选择的所有效果
+    /// 应用选择效果
     /// </summary>
     private void ApplyChoiceEffects(EventChoice choice)
     {
@@ -502,7 +475,7 @@ public class EventManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 获取事件统计信息
+    /// 获取事件统计
     /// </summary>
     public int GetEventTriggerCount(string eventId)
     {
@@ -578,6 +551,6 @@ public class EventManager : MonoBehaviour
     public void DebugToggleTestMode()
     {
         alwaysTriggerEvents = !alwaysTriggerEvents;
-        Debug.Log($"[DEBUG] 测试模式（总是触发事件）: {(alwaysTriggerEvents ? "ON" : "OFF")}");
+        Debug.Log($"[DEBUG] 测试模式: {(alwaysTriggerEvents ? "ON" : "OFF")}");
     }
 }
