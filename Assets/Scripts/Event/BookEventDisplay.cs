@@ -4,40 +4,43 @@ using System.Collections;
 using System.Collections.Generic;
 
 /// <summary>
-/// 书本事件显示系统
-/// 使用Animation直接控制翻页
-/// 翻页由事件触发或玩家选择驱动
+/// 书本事件显示系统 - 完全修复版
+/// ✅ 修复：动画播放、按钮水平间距
 /// </summary>
 public class BookEventDisplay : MonoBehaviour
 {
     [Header("书本动画")]
-    [SerializeField] private Animation bookAnimation;  // 书本动画组件
-    [SerializeField] private AnimationClip pageFlipClip;  // 翻页动画片段
+    [SerializeField] private Animation bookAnimation;
+    [SerializeField] private AnimationClip pageFlipClip;
     
     [Header("相机移动")]
-    [SerializeField] private Camera mainCamera;  // 主相机
-    [SerializeField] private Transform eventCameraPosition;  // 事件时相机位置
-    [SerializeField] private float cameraMoveSpeed = 2f;  // 相机移动速度
+    [SerializeField] private Camera mainCamera;
+    [SerializeField] private Transform eventCameraPosition;
+    [SerializeField] private float cameraMoveSpeed = 2f;
     
     [Header("文字显示 - Canvas UI")]
-    [SerializeField] private TextMeshProUGUI leftPageText;   // 左页文字（Canvas UI）
-    [SerializeField] private TextMeshProUGUI rightPageText;  // 右页文字（备用）
-    [SerializeField] private float textRevealSpeed = 30f; // 文字显示速度（字符/秒）
+    [SerializeField] private TextMeshProUGUI leftPageText;
+    [SerializeField] private TextMeshProUGUI rightPageText;
+    [SerializeField] private float textRevealSpeed = 30f;
     
     [Header("选择按钮生成")]
     [SerializeField] private EventChoice3D choiceButtonPrefab;
     [SerializeField] private Transform choiceSpawnParent;
     [SerializeField] private Vector3 firstChoicePosition = new Vector3(0, 1, 2);
-    [SerializeField] private float choiceSpacing = 0.5f;
+    [SerializeField] private float choiceSpacingX = 2f;  // ✨ 水平间距（俯视角）
+    [SerializeField] private float choiceSpacingY = 0.5f;
+    [SerializeField] private bool arrangeHorizontal = true;  // true=水平排列，false=竖直排列
     
     [Header("动画时序")]
-    [SerializeField] private float delayAfterFlip = 0.3f;  // 翻页后延迟
+    [SerializeField] private float delayAfterFlip = 0.3f;
+    
+    [Header("调试")]
+    [SerializeField] private bool debugMode = true;
     
     private List<EventChoice3D> currentChoiceButtons = new List<EventChoice3D>();
     private bool isDisplaying = false;
     private EventData currentEvent;
     
-    // 相机状态
     private Vector3 defaultCameraPosition;
     private Quaternion defaultCameraRotation;
     private bool isCameraAtEvent = false;
@@ -56,26 +59,26 @@ public class BookEventDisplay : MonoBehaviour
 
     void Start()
     {
-        // 自动查找主相机
         if (mainCamera == null)
         {
             mainCamera = Camera.main;
         }
         
-        // 保存相机默认位置
         if (mainCamera != null)
         {
             defaultCameraPosition = mainCamera.transform.position;
             defaultCameraRotation = mainCamera.transform.rotation;
         }
         
-        // 初始化：显示空白书本
+        // 禁用自动播放（防止冲突）
+        if (bookAnimation != null)
+        {
+            bookAnimation.playAutomatically = false;
+        }
+        
         ClearPages();
     }
 
-    /// <summary>
-    /// 显示新事件
-    /// </summary>
     public void ShowEvent(EventData eventData)
     {
         if (isDisplaying) return;
@@ -84,56 +87,61 @@ public class BookEventDisplay : MonoBehaviour
         StartCoroutine(ShowEventSequence());
     }
 
-    /// <summary>
-    /// 显示事件序列
-    /// </summary>
     private IEnumerator ShowEventSequence()
     {
         isDisplaying = true;
         
-        // 1. 移动相机到事件位置
         yield return StartCoroutine(MoveCameraToEvent());
-        
-        // 2. 播放翻页动画
         yield return StartCoroutine(PlayPageFlip());
         
-        // 3. 清空旧内容
         ClearPages();
         ClearChoiceButtons();
         
-        // 4. 短暂延迟
         yield return new WaitForSeconds(delayAfterFlip);
         
-        // 5. 获取并显示故事文本
         string storyText = GetStoryText();
         yield return StartCoroutine(RevealText(leftPageText, storyText));
         
-        // 6. 生成选择按钮
         CreateChoiceButtons();
         
         isDisplaying = false;
     }
 
     /// <summary>
-    /// 播放翻页动画
+    /// ✅ 正确的动画播放方法
     /// </summary>
     private IEnumerator PlayPageFlip()
     {
-        if (bookAnimation != null && pageFlipClip != null)
+        if (bookAnimation == null)
         {
-            bookAnimation.Play(pageFlipClip.name);
-            yield return new WaitForSeconds(pageFlipClip.length);
+            Debug.LogError("[BookEventDisplay] ❌ bookAnimation 未分配！");
+            yield break;
         }
-        else
+        
+        if (pageFlipClip == null)
         {
-            Debug.LogWarning("[BookEventDisplay] 翻页动画未设置");
-            yield return null;
+            Debug.LogError("[BookEventDisplay] ❌ pageFlipClip 未分配！");
+            yield break;
+        }
+        
+        // ✅ 方式1：使用clip对象（最安全）
+        bookAnimation.clip = pageFlipClip;
+        bookAnimation.Play();
+        
+        if (debugMode)
+        {
+            Debug.Log($"[BookEventDisplay] ▶️  播放翻页动画: {pageFlipClip.name} (长度: {pageFlipClip.length:F2}秒)");
+        }
+        
+        // 等待动画完成
+        yield return new WaitForSeconds(pageFlipClip.length);
+        
+        if (debugMode)
+        {
+            Debug.Log("[BookEventDisplay] ✅ 翻页动画完成");
         }
     }
 
-    /// <summary>
-    /// 移动相机到事件位置
-    /// </summary>
     private IEnumerator MoveCameraToEvent()
     {
         if (mainCamera == null || eventCameraPosition == null)
@@ -165,12 +173,12 @@ public class BookEventDisplay : MonoBehaviour
         mainCamera.transform.position = targetPosition;
         mainCamera.transform.rotation = targetRotation;
         
-        Debug.Log("[BookEventDisplay] 相机已移动到事件位置");
+        if (debugMode)
+        {
+            Debug.Log("[BookEventDisplay] 📷 相机已移动到事件位置");
+        }
     }
 
-    /// <summary>
-    /// 移动相机回默认位置
-    /// </summary>
     private IEnumerator MoveCameraToDefault()
     {
         if (mainCamera == null)
@@ -198,12 +206,12 @@ public class BookEventDisplay : MonoBehaviour
         mainCamera.transform.position = defaultCameraPosition;
         mainCamera.transform.rotation = defaultCameraRotation;
         
-        Debug.Log("[BookEventDisplay] 相机已返回默认位置");
+        if (debugMode)
+        {
+            Debug.Log("[BookEventDisplay] 📷 相机已返回默认位置");
+        }
     }
 
-    /// <summary>
-    /// 获取故事文本
-    /// </summary>
     private string GetStoryText()
     {
         if (currentEvent == null) return "";
@@ -217,9 +225,6 @@ public class BookEventDisplay : MonoBehaviour
         return currentEvent.storyKey;
     }
 
-    /// <summary>
-    /// 逐字显示文本
-    /// </summary>
     private IEnumerator RevealText(TextMeshProUGUI textMesh, string fullText)
     {
         if (textMesh == null) yield break;
@@ -233,15 +238,30 @@ public class BookEventDisplay : MonoBehaviour
             textMesh.text = fullText.Substring(0, i);
             yield return new WaitForSeconds(charDelay);
         }
+        
+        if (debugMode)
+        {
+            Debug.Log("[BookEventDisplay] 📝 文字显示完成");
+        }
     }
 
     /// <summary>
-    /// 创建选择按钮
+    /// ✅ 修复：正确的按钮生成逻辑，支持水平/竖直排列
     /// </summary>
     private void CreateChoiceButtons()
     {
         if (currentEvent == null || currentEvent.choices == null) return;
-        if (choiceButtonPrefab == null) return;
+        if (choiceButtonPrefab == null)
+        {
+            Debug.LogError("[BookEventDisplay] ❌ choiceButtonPrefab 未分配！");
+            return;
+        }
+        
+        if (choiceSpawnParent == null)
+        {
+            Debug.LogError("[BookEventDisplay] ❌ choiceSpawnParent 未分配！");
+            return;
+        }
         
         Vector3 currentPosition = firstChoicePosition;
         
@@ -249,46 +269,45 @@ public class BookEventDisplay : MonoBehaviour
         {
             var choice = currentEvent.choices[i];
             
-            // 实例化按钮
             var buttonObj = Instantiate(choiceButtonPrefab, choiceSpawnParent);
             buttonObj.transform.localPosition = currentPosition;
             
-            // 设置按钮数据
             buttonObj.SetChoiceData(choice, i);
-            
-            // 订阅点击事件
             buttonObj.OnChoiceClicked += OnChoiceSelected;
             
             currentChoiceButtons.Add(buttonObj);
             
-            // 下一个位置
-            currentPosition.y -= choiceSpacing;
+            // ✅ 根据排列方式调整下一个按钮的位置
+            if (arrangeHorizontal)
+            {
+                currentPosition.x += choiceSpacingX;  // 水平排列，X轴增加
+            }
+            else
+            {
+                currentPosition.y -= choiceSpacingY;  // 竖直排列，Y轴减少
+            }
         }
         
-        Debug.Log($"[BookEventDisplay] 创建了 {currentChoiceButtons.Count} 个选择按钮");
+        if (debugMode)
+        {
+            string arrangement = arrangeHorizontal ? "水平" : "竖直";
+            Debug.Log($"[BookEventDisplay] ✅ 创建了 {currentChoiceButtons.Count} 个选择按钮 ({arrangement}排列, 间距: {(arrangeHorizontal ? choiceSpacingX : choiceSpacingY)})");
+        }
     }
 
-    /// <summary>
-    /// 选择被点击
-    /// </summary>
     private void OnChoiceSelected(int choiceIndex)
     {
-        Debug.Log($"[BookEventDisplay] 选择了选项 {choiceIndex}");
-        
+        if (debugMode)
+        {
+            Debug.Log($"[BookEventDisplay] 🎯 玩家选择了选项 {choiceIndex}");
+        }
         StartCoroutine(HandleChoiceSelected(choiceIndex));
     }
 
-    /// <summary>
-    /// 处理选择点击的完整流程
-    /// </summary>
     private IEnumerator HandleChoiceSelected(int choiceIndex)
     {
-        // 1. 通知 EventManager 处理选择
-        var eventManager = EventManager.Instance;
-        if (eventManager != null)
-        {
-            eventManager.OnPlayerChoice(choiceIndex);
-        }
+        // 1. 立即清空文字
+        ClearPages();
         
         // 2. 清除选择按钮
         ClearChoiceButtons();
@@ -296,27 +315,28 @@ public class BookEventDisplay : MonoBehaviour
         // 3. 播放翻页动画
         yield return StartCoroutine(PlayPageFlip());
         
-        // 4. 清空书页，显示空白（等待下一个事件）
-        ClearPages();
+        // 4. 通知EventManager处理选择结果
+        var eventManager = EventManager.Instance;
+        if (eventManager != null)
+        {
+            eventManager.OnPlayerChoice(choiceIndex);
+        }
         
         // 5. 相机返回默认位置
         yield return StartCoroutine(MoveCameraToDefault());
         
-        Debug.Log("[BookEventDisplay] 书本已翻页，等待下一个事件");
+        if (debugMode)
+        {
+            Debug.Log("[BookEventDisplay] 📖 书本已翻页，等待下一个事件");
+        }
     }
 
-    /// <summary>
-    /// 清空书页
-    /// </summary>
     private void ClearPages()
     {
         if (leftPageText != null) leftPageText.text = "";
         if (rightPageText != null) rightPageText.text = "";
     }
 
-    /// <summary>
-    /// 清空选择按钮
-    /// </summary>
     private void ClearChoiceButtons()
     {
         foreach (var button in currentChoiceButtons)
@@ -330,9 +350,6 @@ public class BookEventDisplay : MonoBehaviour
         currentChoiceButtons.Clear();
     }
 
-    /// <summary>
-    /// 检查是否正在显示
-    /// </summary>
     public bool IsDisplaying()
     {
         return isDisplaying;
