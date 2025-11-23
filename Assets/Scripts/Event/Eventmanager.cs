@@ -6,6 +6,7 @@ using System.Linq;
 /// <summary>
 /// 事件管理系统核心 - 书本显示版
 /// 使用BookEventDisplay替代EventUIPanel
+/// ✅ 修改：添加GetEventDatabase()方法供外部访问
 /// </summary>
 public class EventManager : MonoBehaviour
 {
@@ -21,7 +22,7 @@ public class EventManager : MonoBehaviour
     [SerializeField] private EventStoryProvider storyProvider;
     
     [Header("UI 引用 - 书本显示")]
-    [SerializeField] private BookEventDisplay bookEventDisplay;
+    [SerializeField] private BookEventDisplayMultiPage bookEventDisplay;
     
     [Header("✨ 触发概率设置")]
     [SerializeField] [Range(0f, 1f)] private float dailyEventTriggerProbability = 0.3f;
@@ -69,7 +70,7 @@ public class EventManager : MonoBehaviour
         if (gameState == null) gameState = FindObjectOfType<AffectGameState>();
         if (timeManager == null) timeManager = FindObjectOfType<TimeManager>();
         if (flagManager == null) flagManager = FindObjectOfType<GameFlagManager>();
-        if (bookEventDisplay == null) bookEventDisplay = FindObjectOfType<BookEventDisplay>();
+        if (bookEventDisplay == null) bookEventDisplay = FindObjectOfType<BookEventDisplayMultiPage>();
         
         // 加载事件数据库
         if (eventDatabase == null)
@@ -119,6 +120,33 @@ public class EventManager : MonoBehaviour
         {
             timeManager.onDayChanged -= OnDayChanged;
         }
+    }
+
+    /// <summary>
+    /// 获取事件数据库（用于外部系统查询）
+    /// ✅ 新增：供EventTriggerManager使用
+    /// </summary>
+    public EventDatabase GetEventDatabase()
+    {
+        if (eventDatabase == null)
+        {
+            eventDatabase = Resources.Load<EventDatabase>("Events/EventDatabase");
+            if (eventDatabase == null)
+            {
+                eventDatabase = FindObjectOfType<EventDatabase>();
+            }
+        }
+        return eventDatabase;
+    }
+
+    /// <summary>
+    /// 检查事件是否存在
+    /// </summary>
+    public bool EventExists(string eventId)
+    {
+        var database = GetEventDatabase();
+        if (database == null) return false;
+        return database.GetEventById(eventId) != null;
     }
 
     /// <summary>
