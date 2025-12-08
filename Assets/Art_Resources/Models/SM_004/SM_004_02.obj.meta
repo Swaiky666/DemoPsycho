@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 312f38114851f9444a85f581beefb84b
+guid: 5726e41e8435d8b4ea1c3f08dc88b1a3
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
@@ -7,23 +7,8 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: LOW1_lowpolySurface17_polySurface19Mat
-    second: {fileID: 2100000, guid: 56ac317fc8270ef4f8c483f1ff43a11a, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: LOW1_lowpolySurface17_polySurface20Mat
-    second: {fileID: 2100000, guid: 56ac317fc8270ef4f8c483f1ff43a11a, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: LOW1_lowpolySurface17_polySurface22Mat
-    second: {fileID: 2100000, guid: 56ac317fc8270ef4f8c483f1ff43a11a, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: polySurface18_LOW1_lowpolySurface17Mat
-    second: {fileID: 2100000, guid: 56ac317fc8270ef4f8c483f1ff43a11a, type: 2}
+      name: low_pSphere1low2LOW2Mat
+    second: {fileID: 2100000, guid: 34280f9955d53fe489dff80e299c8091, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
