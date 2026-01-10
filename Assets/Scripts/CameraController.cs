@@ -10,7 +10,7 @@ public class CameraController : MonoBehaviour
     [SerializeField] private float dampingFactor = 0.1f;
 
     [Header("UI & Targets")]
-    public GameObject targetHoverPanel; // 挂载在 Target 下的 UI 面板
+    public GameObject targetHoverPanel;
     public string targetTag = "TargetObject";
 
     private Vector3 defaultPos;
@@ -25,6 +25,9 @@ public class CameraController : MonoBehaviour
     private float currentRotationX, currentRotationY;
     private float targetRotationX, targetRotationY;
 
+    // 勾边逻辑变量
+    private Outline lastHighlightedOutline;
+
     private void Start()
     {
         defaultPos = transform.position;
@@ -35,19 +38,51 @@ public class CameraController : MonoBehaviour
 
     private void Update()
     {
-        // 1. 点击检测 (PC/手机通用)
-        if (Input.GetMouseButtonDown(0))
-        {
-            HandleUniversalClick();
-        }
+        // 1. 处理点击检测
+        if (Input.GetMouseButtonDown(0)) HandleUniversalClick();
 
-        // 2. 鼠标摇摆 (非过渡状态)
+        // 2. 处理悬停勾边 (指着就发光)
+        HandleHighlight();
+
+        // 3. 鼠标摇摆
         if (!isMoving) HandleMouseFollow();
         
-        // 3. Billboard 效果：让 UI 始终面对相机 (可选)
+        // 4. Billboard (UI 面对相机)
         if (targetHoverPanel && targetHoverPanel.activeSelf)
         {
             targetHoverPanel.transform.LookAt(targetHoverPanel.transform.position + transform.forward);
+        }
+    }
+
+    // --- 新增：勾边处理逻辑 ---
+    private void HandleHighlight()
+    {
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit hit;
+
+        if (Physics.Raycast(ray, out hit))
+        {
+            if (hit.collider.CompareTag(targetTag))
+            {
+                Outline outline = hit.collider.GetComponent<Outline>();
+                if (outline != null)
+                {
+                    if (lastHighlightedOutline != outline)
+                    {
+                        if (lastHighlightedOutline != null) lastHighlightedOutline.enabled = false;
+                        outline.enabled = true; // 开启发光
+                        lastHighlightedOutline = outline;
+                    }
+                    return;
+                }
+            }
+        }
+
+        // 如果没指着物体，关闭之前的发光
+        if (lastHighlightedOutline != null)
+        {
+            lastHighlightedOutline.enabled = false;
+            lastHighlightedOutline = null;
         }
     }
 
@@ -61,38 +96,31 @@ public class CameraController : MonoBehaviour
             GameObject hitObj = hit.collider.gameObject;
             CameraAnchor anchor = hitObj.GetComponent<CameraAnchor>();
 
-            // 点击了坐标系锚点
             if (anchor != null)
             {
                 isFocusing = true;
                 currentActiveAnchor = anchor;
                 StartMove(anchor.GetViewPosition(), anchor.GetViewRotation());
-                
                 if (anchor.linkedUI != null) anchor.linkedUI.TogglePanel(true);
                 if (targetHoverPanel) targetHoverPanel.SetActive(false);
                 return;
             }
 
-            // 点击了 TargetObject
             if (hitObj.CompareTag(targetTag))
             {
                 if (targetHoverPanel) targetHoverPanel.SetActive(true);
                 return;
             }
         }
-
-        // 点击空白处：重置一切
         ResetEverything();
     }
 
     private void ResetEverything()
     {
         if (!isFocusing && !isMoving && (targetHoverPanel && !targetHoverPanel.activeSelf)) return;
-
         isFocusing = false;
         if (currentActiveAnchor && currentActiveAnchor.linkedUI) currentActiveAnchor.linkedUI.TogglePanel(false);
         if (targetHoverPanel) targetHoverPanel.SetActive(false);
-
         currentActiveAnchor = null;
         StartMove(defaultPos, defaultRot);
     }

@@ -6202,6 +6202,7 @@ GameObject:
   - component: {fileID: 1382230423298392988}
   - component: {fileID: 9154229779593958498}
   - component: {fileID: 9154229779593958499}
+  - component: {fileID: 9154229779593958500}
   m_Layer: 0
   m_Name: SW_004_02_SW_004
   m_TagString: TargetObject
@@ -6749,6 +6750,24 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.30239853
   m_Center: {x: 0.00000046589258, y: 1.4391531, z: 0.00000042333656}
+--- !u!114 &9154229779593958500
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3948895571944091321}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  outlineMode: 0
+  outlineColor: {r: 1, g: 0.88037235, b: 0, a: 1}
+  outlineWidth: 2
+  precomputeOutline: 0
+  bakeKeys: []
+  bakeValues: []
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
