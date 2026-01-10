@@ -6421,6 +6421,7 @@ GameObject:
   - component: {fileID: 2301863398185951546}
   - component: {fileID: 7180395315362655049}
   - component: {fileID: 7180395315362655050}
+  - component: {fileID: 7180395315362655051}
   m_Layer: 0
   m_Name: SW_004_01_SW_004
   m_TagString: Untagged
@@ -6619,6 +6620,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cameraViewPoint: {fileID: 756398325}
   linkedUI: {fileID: 4964519842103023754}
+--- !u!114 &7180395315362655051
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6166241973235988236}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  outlineMode: 0
+  outlineColor: {r: 1, g: 0.88235295, b: 0, a: 1}
+  outlineWidth: 2
+  precomputeOutline: 0
+  bakeKeys: []
+  bakeValues: []
 --- !u!1 &7558345782276432567
 GameObject:
   m_ObjectHideFlags: 0
@@ -6763,7 +6782,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   outlineMode: 0
-  outlineColor: {r: 1, g: 0.88037235, b: 0, a: 1}
+  outlineColor: {r: 1, g: 0.88235295, b: 0, a: 1}
   outlineWidth: 2
   precomputeOutline: 0
   bakeKeys: []
